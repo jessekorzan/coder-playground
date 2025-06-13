@@ -11,6 +11,15 @@ const Index = () => {
   const [cssCode, setCssCode] = useState('');
   const [jsCode, setJsCode] = useState('');
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [aiPrompt, setAiPrompt] = useState<string>('');
+
+  const handleAiRequest = (prompt: string) => {
+    setAiPrompt(prompt);
+  };
+
+  const handlePromptProcessed = () => {
+    setAiPrompt('');
+  };
 
   // Initialize dark mode from localStorage
   useEffect(() => {
@@ -207,12 +216,16 @@ document.getElementById('my-button').addEventListener('click', function() {
             onHtmlChange={setHtmlCode}
             onCssChange={setCssCode}
             onJsChange={setJsCode}
+            onAiRequest={handleAiRequest}
           />
         </div>
 
         {/* Right Panel - AI Assistant */}
         <div className="w-[30%] bg-gray-50 dark:bg-gray-800">
-          <AiAssistant />
+          <AiAssistant 
+            externalPrompt={aiPrompt}
+            onPromptProcessed={handlePromptProcessed}
+          />
         </div>
       </div>
     </div>

@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -143,82 +142,12 @@ export const AiAssistant = ({ externalPrompt, onPromptProcessed }: AiAssistantPr
     setMessages(prev => [...prev, userMessage]);
     const currentInput = inputValue;
     setInputValue('');
-    setIsLoading(true);
 
-    // Keep focus on input immediately after clearing
-    // Use requestAnimationFrame to ensure DOM updates are complete
     requestAnimationFrame(() => {
       inputRef.current?.focus();
     });
 
-    try {
-      // Call the actual AI webhook
-      const response = await fetch('https://n8n-service-u37x.onrender.com/webhook/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          chatInput: currentInput
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      
-      // Extract the AI response from the webhook response
-      let aiResponse = data.data || data.output || data.response || data.message || 'Sorry, I couldn\'t process your request right now. Please try again.';
-      
-      // Convert HTML to plain text for better display in chat
-      if (typeof aiResponse === 'string' && aiResponse.includes('<')) {
-        // Remove HTML tags and convert to readable text
-        aiResponse = aiResponse
-          .replace(/<h3>/g, '\n**')
-          .replace(/<\/h3>/g, '**\n')
-          .replace(/<p>/g, '\n')
-          .replace(/<\/p>/g, '\n')
-          .replace(/<main>/g, '')
-          .replace(/<\/main>/g, '')
-          .replace(/<footer>/g, '\n\n---\n')
-          .replace(/<\/footer>/g, '\n')
-          .replace(/<section>/g, '\n\nSuggestions:')
-          .replace(/<\/section>/g, '')
-          .replace(/<a[^>]*onclick="[^"]*"[^>]*>/g, '• ')
-          .replace(/<\/a>/g, '')
-          .replace(/\n\s*\n\s*\n/g, '\n\n')
-          .trim();
-      }
-      
-      const assistantMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        type: 'assistant',
-        content: aiResponse,
-        timestamp: new Date(),
-      };
-
-      setMessages(prev => [...prev, assistantMessage]);
-    } catch (error) {
-      console.error('Error calling AI webhook:', error);
-      
-      // Show error message to user
-      const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        type: 'assistant',
-        content: 'Sorry, I\'m having trouble connecting to the AI service right now. Please try again in a moment.',
-        timestamp: new Date(),
-      };
-
-      setMessages(prev => [...prev, errorMessage]);
-    } finally {
-      setIsLoading(false);
-      // Ensure focus is restored after the loading state changes
-      requestAnimationFrame(() => {
-        inputRef.current?.focus();
-      });
-    }
+    await handleAIRequest(currentInput);
   };
 
   return (
