@@ -1,4 +1,6 @@
 
+import JSZip from 'jszip';
+
 export const generateZip = async (htmlCode: string, cssCode: string, jsCode: string) => {
   // Create the complete HTML file with proper structure
   const completeHtml = `<!DOCTYPE html>
@@ -15,37 +17,37 @@ export const generateZip = async (htmlCode: string, cssCode: string, jsCode: str
 </body>
 </html>`;
 
-  // Create a simple ZIP-like structure using a basic approach
-  // In a real application, you'd use a library like JSZip
-  const files = [
-    { name: 'index.html', content: completeHtml },
-    { name: 'style.css', content: cssCode },
-    { name: 'script.js', content: jsCode },
-  ];
-
-  // For now, we'll create individual downloads
-  // In production, you'd want to use JSZip to create a proper ZIP file
-  downloadAsZip(files);
-};
-
-const downloadAsZip = (files: { name: string; content: string }[]) => {
-  // This is a simplified approach - in a real app, use JSZip
-  files.forEach((file, index) => {
-    setTimeout(() => {
-      const blob = new Blob([file.content], { type: 'text/plain' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = file.name;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    }, index * 500); // Stagger downloads
-  });
+  // Create a new JSZip instance
+  const zip = new JSZip();
   
-  // Show a friendly message
-  setTimeout(() => {
-    alert('🎉 Your Code Cadet project files have been downloaded! Look for index.html, style.css, and script.js in your Downloads folder.');
-  }, files.length * 500 + 500);
+  // Create the codecadet_page folder
+  const folder = zip.folder("codecadet_page");
+  
+  if (folder) {
+    // Add files to the folder
+    folder.file("index.html", completeHtml);
+    folder.file("style.css", cssCode);
+    folder.file("script.js", jsCode);
+  }
+
+  try {
+    // Generate the ZIP file as a blob
+    const content = await zip.generateAsync({ type: "blob" });
+    
+    // Create download link
+    const url = URL.createObjectURL(content);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'codecadet_project.zip';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    // Show success message
+    alert('🎉 Your Code Cadet project has been downloaded as codecadet_project.zip!');
+  } catch (error) {
+    console.error('Error creating ZIP file:', error);
+    alert('Sorry, there was an error creating your ZIP file. Please try again.');
+  }
 };
