@@ -51,34 +51,80 @@ export const AiAssistant = () => {
     };
 
     setMessages(prev => [...prev, userMessage]);
+    const currentInput = inputValue;
     setInputValue('');
     setIsLoading(true);
 
-    // Simulate AI response (in a real app, this would call an actual AI API)
+    // Keep focus on input immediately after clearing
     setTimeout(() => {
-      const responses = [
-        "Great question! Let me help you with that. To change text color in CSS, you can use the `color` property. For example:\n\n```css\nh1 {\n  color: red;\n}\n```\n\nThis will make all h1 headings red. You can use color names like 'blue', 'green', or hex codes like '#FF6B6B' for custom colors!",
-        
-        "To create a button in HTML, use the `<button>` tag:\n\n```html\n<button>Click me!</button>\n```\n\nTo make it interactive with JavaScript:\n\n```javascript\ndocument.querySelector('button').addEventListener('click', function() {\n  alert('Button clicked!');\n});\n```\n\nTry adding this to your code and see what happens!",
-        
-        "To center text, you can use CSS:\n\n```css\ntext-align: center;\n```\n\nFor example:\n```css\nh1 {\n  text-align: center;\n}\n```\n\nThis will center all your h1 headings. You can also center other elements like paragraphs (`p`) or divs!",
-        
-        "That's a great coding question! The key to learning web development is practice and experimentation. Try making small changes to your code and see what happens. Don't worry about breaking anything - that's how we learn! What specific part would you like me to explain?",
-      ];
+      inputRef.current?.focus();
+    }, 0);
 
-      const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+    try {
+      // Call the actual AI webhook
+      const response = await fetch('https://n8n-service-u37x.onrender.com/webhook/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          chatInput: currentInput
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      // Extract the AI response from the webhook response
+      let aiResponse = data.data || data.output || data.response || data.message || 'Sorry, I couldn\'t process your request right now. Please try again.';
+      
+      // Convert HTML to plain text for better display in chat
+      if (typeof aiResponse === 'string' && aiResponse.includes('<')) {
+        // Remove HTML tags and convert to readable text
+        aiResponse = aiResponse
+          .replace(/<h3>/g, '\n**')
+          .replace(/<\/h3>/g, '**\n')
+          .replace(/<p>/g, '\n')
+          .replace(/<\/p>/g, '\n')
+          .replace(/<main>/g, '')
+          .replace(/<\/main>/g, '')
+          .replace(/<footer>/g, '\n\n---\n')
+          .replace(/<\/footer>/g, '\n')
+          .replace(/<section>/g, '\n\nSuggestions:')
+          .replace(/<\/section>/g, '')
+          .replace(/<a[^>]*onclick="[^"]*"[^>]*>/g, '• ')
+          .replace(/<\/a>/g, '')
+          .replace(/\n\s*\n\s*\n/g, '\n\n')
+          .trim();
+      }
       
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         type: 'assistant',
-        content: randomResponse,
+        content: aiResponse,
         timestamp: new Date(),
       };
 
       setMessages(prev => [...prev, assistantMessage]);
+    } catch (error) {
+      console.error('Error calling AI webhook:', error);
+      
+      // Show error message to user
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        type: 'assistant',
+        content: 'Sorry, I\'m having trouble connecting to the AI service right now. Please try again in a moment.',
+        timestamp: new Date(),
+      };
+
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
       setIsLoading(false);
       inputRef.current?.focus();
-    }, 1000 + Math.random() * 1000); // Random delay between 1-2 seconds
+    }
   };
 
   return (
