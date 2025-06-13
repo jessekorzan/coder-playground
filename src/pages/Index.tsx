@@ -1,15 +1,33 @@
-
 import { useState, useEffect } from 'react';
 import { CodeEditor } from '@/components/CodeEditor';
 import { AiAssistant } from '@/components/AiAssistant';
 import { Button } from '@/components/ui/button';
-import { Eye, Download } from 'lucide-react';
+import { Eye, Download, Moon, Sun } from 'lucide-react';
 import { generateZip } from '@/utils/zipUtils';
 
 const Index = () => {
   const [htmlCode, setHtmlCode] = useState('');
   const [cssCode, setCssCode] = useState('');
   const [jsCode, setJsCode] = useState('');
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  // Initialize dark mode from localStorage
+  useEffect(() => {
+    const savedDarkMode = localStorage.getItem('codecadet-darkmode');
+    if (savedDarkMode) {
+      setIsDarkMode(JSON.parse(savedDarkMode));
+    }
+  }, []);
+
+  // Apply dark mode class to document and save preference
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    localStorage.setItem('codecadet-darkmode', JSON.stringify(isDarkMode));
+  }, [isDarkMode]);
 
   // Initialize with default HTML boilerplate
   useEffect(() => {
@@ -134,17 +152,29 @@ document.getElementById('my-button').addEventListener('click', function() {
     }
   };
 
+  const toggleDarkMode = () => {
+    setIsDarkMode(!isDarkMode);
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200">
+      <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
         <div className="w-full px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              <h1 className="text-2xl font-bold text-indigo-600">Code Cadet</h1>
-              <span className="ml-3 text-sm text-gray-500">Your First Coding Adventure</span>
+              <h1 className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">Code Cadet</h1>
+              <span className="ml-3 text-sm text-gray-500 dark:text-gray-400">Your First Coding Adventure</span>
             </div>
             <div className="flex space-x-4">
+              <Button
+                onClick={toggleDarkMode}
+                variant="outline"
+                size="icon"
+                className="border-indigo-300 dark:border-indigo-600 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900"
+              >
+                {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+              </Button>
               <Button
                 onClick={handlePreview}
                 className="bg-green-500 hover:bg-green-600 text-white"
@@ -155,7 +185,7 @@ document.getElementById('my-button').addEventListener('click', function() {
               <Button
                 onClick={handleDownload}
                 variant="outline"
-                className="border-indigo-300 text-indigo-600 hover:bg-indigo-50"
+                className="border-indigo-300 dark:border-indigo-600 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900"
               >
                 <Download className="w-4 h-4 mr-2" />
                 Download ZIP
@@ -168,7 +198,7 @@ document.getElementById('my-button').addEventListener('click', function() {
       {/* Main Content */}
       <div className="flex h-[calc(100vh-4rem)]">
         {/* Left Panel - Code Editor */}
-        <div className="w-[70%] border-r border-gray-200">
+        <div className="w-[70%] border-r border-gray-200 dark:border-gray-700">
           <CodeEditor
             htmlCode={htmlCode}
             cssCode={cssCode}
@@ -180,7 +210,7 @@ document.getElementById('my-button').addEventListener('click', function() {
         </div>
 
         {/* Right Panel - AI Assistant */}
-        <div className="w-[30%] bg-white">
+        <div className="w-[30%] bg-white dark:bg-gray-800">
           <AiAssistant />
         </div>
       </div>
