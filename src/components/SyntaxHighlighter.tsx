@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 interface SyntaxHighlighterProps {
@@ -63,10 +62,40 @@ export const SyntaxHighlighter: React.FC<SyntaxHighlighterProps> = ({
           '<span class="text-gray-500 dark:text-gray-400 italic">$1</span>'
         );
         
-        // CSS property values (after : and before ; or })
+        // CSS strings in quotes
+        highlightedCode = highlightedCode.replace(
+          /(&#x27;[^&#x27;]*&#x27;|&quot;[^&quot;]*&quot;)/g,
+          '<span class="text-orange-600 dark:text-orange-400">$1</span>'
+        );
+        
+        // CSS color values (hex colors)
+        highlightedCode = highlightedCode.replace(
+          /(#[0-9a-fA-F]{3,8})/g,
+          '<span class="text-yellow-600 dark:text-yellow-400">$1</span>'
+        );
+        
+        // CSS function values (rgba, linear-gradient, etc)
+        highlightedCode = highlightedCode.replace(
+          /\b([a-zA-Z-]+)\(/g,
+          '<span class="text-purple-600 dark:text-purple-400">$1</span>('
+        );
+        
+        // CSS numeric values with units
+        highlightedCode = highlightedCode.replace(
+          /\b(\d+(?:\.\d+)?)(px|em|rem|%|vh|vw|deg|s|ms)\b/g,
+          '<span class="text-orange-600 dark:text-orange-400">$1$2</span>'
+        );
+        
+        // CSS property values (everything after : until ; or })
         highlightedCode = highlightedCode.replace(
           /(:\s*)([^;{}]+?)(;|})/g,
-          '$1<span class="text-green-600 dark:text-green-400">$2</span>$3'
+          (match, colon, value, end) => {
+            // Don't re-highlight already highlighted content
+            if (value.includes('<span')) {
+              return match;
+            }
+            return `${colon}<span class="text-green-600 dark:text-green-400">${value}</span>${end}`;
+          }
         );
         
         // CSS properties (before :)
@@ -75,9 +104,9 @@ export const SyntaxHighlighter: React.FC<SyntaxHighlighterProps> = ({
           '<span class="text-blue-600 dark:text-blue-400">$1</span>$2'
         );
         
-        // CSS selectors (at start of line or after })
+        // CSS selectors (class, id, element)
         highlightedCode = highlightedCode.replace(
-          /(^|}\s*\n?)([.#]?[a-zA-Z][a-zA-Z0-9-_]*(?:\s*,\s*[.#]?[a-zA-Z][a-zA-Z0-9-_]*)*)\s*\{/gm,
+          /(^|\n)([.#]?[a-zA-Z][a-zA-Z0-9-_]*(?::hover|:focus|:active)?(?:\s*,\s*[.#]?[a-zA-Z][a-zA-Z0-9-_]*(?::hover|:focus|:active)?)*)\s*\{/gm,
           '$1<span class="text-purple-600 dark:text-purple-400 font-semibold">$2</span> {'
         );
         break;
