@@ -1,8 +1,6 @@
-
 import { useState, useEffect } from 'react';
 import { CodeEditor } from '@/components/CodeEditor';
 import { AiAssistant } from '@/components/AiAssistant';
-import { PreviewModal } from '@/components/PreviewModal';
 import { Button } from '@/components/ui/button';
 import { Eye, Download } from 'lucide-react';
 import { generateZip } from '@/utils/zipUtils';
@@ -11,7 +9,6 @@ const Index = () => {
   const [htmlCode, setHtmlCode] = useState('');
   const [cssCode, setCssCode] = useState('');
   const [jsCode, setJsCode] = useState('');
-  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
   // Initialize with default HTML boilerplate
   useEffect(() => {
@@ -110,6 +107,32 @@ document.getElementById('my-button').addEventListener('click', function() {
     generateZip(htmlCode, cssCode, jsCode);
   };
 
+  const handlePreview = () => {
+    const previewContent = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Cadet Preview</title>
+    <style>
+        ${cssCode}
+    </style>
+</head>
+<body>
+    ${htmlCode}
+    <script>
+        ${jsCode}
+    </script>
+</body>
+</html>`;
+
+    const newWindow = window.open();
+    if (newWindow) {
+      newWindow.document.write(previewContent);
+      newWindow.document.close();
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       {/* Header */}
@@ -122,7 +145,7 @@ document.getElementById('my-button').addEventListener('click', function() {
             </div>
             <div className="flex space-x-4">
               <Button
-                onClick={() => setIsPreviewOpen(true)}
+                onClick={handlePreview}
                 className="bg-green-500 hover:bg-green-600 text-white"
               >
                 <Eye className="w-4 h-4 mr-2" />
@@ -160,15 +183,6 @@ document.getElementById('my-button').addEventListener('click', function() {
           <AiAssistant />
         </div>
       </div>
-
-      {/* Preview Modal */}
-      <PreviewModal
-        isOpen={isPreviewOpen}
-        onClose={() => setIsPreviewOpen(false)}
-        htmlCode={htmlCode}
-        cssCode={cssCode}
-        jsCode={jsCode}
-      />
     </div>
   );
 };
