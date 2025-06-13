@@ -23,6 +23,27 @@ export const CodeEditor = ({
 }: CodeEditorProps) => {
   const [activeTab, setActiveTab] = useState('html');
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>, onChange: (code: string) => void) => {
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      
+      const textarea = e.currentTarget;
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const value = textarea.value;
+      
+      // Insert two spaces at the cursor position
+      const newValue = value.substring(0, start) + '  ' + value.substring(end);
+      
+      onChange(newValue);
+      
+      // Set cursor position after the inserted spaces
+      setTimeout(() => {
+        textarea.selectionStart = textarea.selectionEnd = start + 2;
+      }, 0);
+    }
+  };
+
   return (
     <div className="h-full bg-white dark:bg-gray-900">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
@@ -60,6 +81,7 @@ export const CodeEditor = ({
                 <textarea
                   value={htmlCode}
                   onChange={(e) => onHtmlChange(e.target.value)}
+                  onKeyDown={(e) => handleKeyDown(e, onHtmlChange)}
                   className="absolute inset-0 w-full h-full p-4 font-mono text-sm border-0 resize-none focus:outline-none focus:ring-2 focus:ring-orange-200 dark:focus:ring-orange-800 bg-transparent text-transparent caret-gray-900 dark:caret-gray-100 z-10"
                   placeholder="Start typing your HTML here..."
                   spellCheck={false}
@@ -84,6 +106,7 @@ export const CodeEditor = ({
                 <textarea
                   value={cssCode}
                   onChange={(e) => onCssChange(e.target.value)}
+                  onKeyDown={(e) => handleKeyDown(e, onCssChange)}
                   className="absolute inset-0 w-full h-full p-4 font-mono text-sm border-0 resize-none focus:outline-none focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-800 bg-transparent text-transparent caret-gray-900 dark:caret-gray-100 z-10"
                   placeholder="/* Add your CSS styles here */
 body {
@@ -112,6 +135,7 @@ body {
                 <textarea
                   value={jsCode}
                   onChange={(e) => onJsChange(e.target.value)}
+                  onKeyDown={(e) => handleKeyDown(e, onJsChange)}
                   className="absolute inset-0 w-full h-full p-4 font-mono text-sm border-0 resize-none focus:outline-none focus:ring-2 focus:ring-yellow-200 dark:focus:ring-yellow-800 bg-transparent text-transparent caret-gray-900 dark:caret-gray-100 z-10"
                   placeholder="// Add your JavaScript code here
 document.getElementById('myButton').addEventListener('click', function() {
