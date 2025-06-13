@@ -56,9 +56,10 @@ export const AiAssistant = () => {
     setIsLoading(true);
 
     // Keep focus on input immediately after clearing
-    setTimeout(() => {
+    // Use requestAnimationFrame to ensure DOM updates are complete
+    requestAnimationFrame(() => {
       inputRef.current?.focus();
-    }, 0);
+    });
 
     try {
       // Call the actual AI webhook
@@ -123,7 +124,10 @@ export const AiAssistant = () => {
       setMessages(prev => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
-      inputRef.current?.focus();
+      // Ensure focus is restored after the loading state changes
+      requestAnimationFrame(() => {
+        inputRef.current?.focus();
+      });
     }
   };
 
@@ -195,7 +199,6 @@ export const AiAssistant = () => {
             onChange={(e) => setInputValue(e.target.value)}
             placeholder="Ask me about HTML, CSS, or JavaScript..."
             className="flex-1 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400"
-            disabled={isLoading}
           />
           <Button type="submit" disabled={!inputValue.trim() || isLoading} size="sm">
             <Send className="w-4 h-4" />
