@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { FileCode, Palette, Zap } from 'lucide-react';
 import { SyntaxHighlighter } from './SyntaxHighlighter';
+import { CodeContextMenu } from './CodeContextMenu';
 
 interface CodeEditorProps {
   htmlCode: string;
@@ -11,6 +12,7 @@ interface CodeEditorProps {
   onHtmlChange: (code: string) => void;
   onCssChange: (code: string) => void;
   onJsChange: (code: string) => void;
+  onAiRequest?: (prompt: string) => void;
 }
 
 export const CodeEditor = ({
@@ -20,8 +22,22 @@ export const CodeEditor = ({
   onHtmlChange,
   onCssChange,
   onJsChange,
+  onAiRequest,
 }: CodeEditorProps) => {
   const [activeTab, setActiveTab] = useState('html');
+  const [contextMenu, setContextMenu] = useState<{
+    visible: boolean;
+    x: number;
+    y: number;
+    selectedCode: string;
+    language: 'html' | 'css' | 'javascript';
+  }>({
+    visible: false,
+    x: 0,
+    y: 0,
+    selectedCode: '',
+    language: 'html',
+  });
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>, onChange: (code: string) => void) => {
     if (e.key === 'Tab') {
@@ -42,6 +58,53 @@ export const CodeEditor = ({
         textarea.selectionStart = textarea.selectionEnd = start + 2;
       }, 0);
     }
+  };
+
+  const handleContextMenu = (e: React.MouseEvent<HTMLTextAreaElement>, language: 'html' | 'css' | 'javascript') => {
+    const textarea = e.currentTarget;
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    
+    // Only show context menu if text is selected
+    if (start !== end) {
+      e.preventDefault();
+      
+      const selectedText = textarea.value.substring(start, end);
+      
+      setContextMenu({
+        visible: true,
+        x: e.clientX,
+        y: e.clientY,
+        selectedCode: selectedText,
+        language,
+      });
+    }
+  };
+
+  const handleAiAction = (action: string, code: string, language: string) => {
+    if (!onAiRequest) return;
+
+    let prompt = '';
+    switch (action) {
+      case 'debug':
+        prompt = `Help me debug this ${language} code:\n\n\`\`\`${language}\n${code}\n\`\`\`\n\nWhat issues do you see and how can I fix them?`;
+        break;
+      case 'explain':
+        prompt = `Please explain what this ${language} code does:\n\n\`\`\`${language}\n${code}\n\`\`\``;
+        break;
+      case 'improve':
+        prompt = `Is there a better way to write this ${language} code?\n\n\`\`\`${language}\n${code}\n\`\`\`\n\nPlease suggest improvements for performance, readability, or best practices.`;
+        break;
+      case 'surprise':
+        prompt = `Here's some ${language} code I wrote:\n\n\`\`\`${language}\n${code}\n\`\`\`\n\nSurprise me! What creative improvements, features, or alternatives can you suggest?`;
+        break;
+    }
+
+    onAiRequest(prompt);
+  };
+
+  const closeContextMenu = () => {
+    setContextMenu(prev => ({ ...prev, visible: false }));
   };
 
   return (
@@ -82,6 +145,7 @@ export const CodeEditor = ({
                   value={htmlCode}
                   onChange={(e) => onHtmlChange(e.target.value)}
                   onKeyDown={(e) => handleKeyDown(e, onHtmlChange)}
+                  onContextMenu={(e) => handleContextMenu(e, 'html')}
                   className="absolute inset-0 w-full h-full p-6 font-mono text-sm border-0 resize-none focus:outline-none bg-transparent text-transparent caret-gray-900 dark:caret-gray-100 z-10"
                   placeholder="Start typing your HTML here..."
                   spellCheck={false}
@@ -107,6 +171,7 @@ export const CodeEditor = ({
                   value={cssCode}
                   onChange={(e) => onCssChange(e.target.value)}
                   onKeyDown={(e) => handleKeyDown(e, onCssChange)}
+                  onContextMenu={(e) => handleContextMenu(e, 'css')}
                   className="absolute inset-0 w-full h-full p-6 font-mono text-sm border-0 resize-none focus:outline-none bg-transparent text-transparent caret-gray-900 dark:caret-gray-100 z-10"
                   placeholder="/* Add your CSS styles here */
 body {
