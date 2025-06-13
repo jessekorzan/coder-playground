@@ -18,9 +18,9 @@ export const generateZip = async (htmlCode: string, cssCode: string, jsCode: str
   // Create a simple ZIP-like structure using a basic approach
   // In a real application, you'd use a library like JSZip
   const files = [
-    { name: 'codecadet_page/index.html', content: completeHtml },
-    { name: 'codecadet_page/style.css', content: cssCode },
-    { name: 'codecadet_page/script.js', content: jsCode },
+    { name: 'index.html', content: completeHtml },
+    { name: 'style.css', content: cssCode },
+    { name: 'script.js', content: jsCode },
   ];
 
   // For now, we'll create individual downloads
@@ -46,6 +46,6 @@ const downloadAsZip = (files: { name: string; content: string }[]) => {
   
   // Show a friendly message
   setTimeout(() => {
-    alert('🎉 Your Code Cadet project files have been downloaded! Look for the codecadet_page folder containing index.html, style.css, and script.js in your Downloads folder.');
+    alert('🎉 Your Code Cadet project files have been downloaded! Look for index.html, style.css, and script.js in your Downloads folder.');
   }, files.length * 500 + 500);
 };
