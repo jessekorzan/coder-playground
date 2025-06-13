@@ -1,8 +1,8 @@
 
-
 import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { FileCode, Palette, Zap } from 'lucide-react';
+import { SyntaxHighlighter } from './SyntaxHighlighter';
 
 interface CodeEditorProps {
   htmlCode: string;
@@ -56,13 +56,22 @@ export const CodeEditor = ({
               <div className="bg-gray-100 dark:bg-gray-800 px-4 py-2 text-sm text-gray-600 dark:text-gray-400 border-b dark:border-gray-700">
                 <p>✏️ Edit your HTML here (only the content inside &lt;body&gt; tags):</p>
               </div>
-              <textarea
-                value={htmlCode}
-                onChange={(e) => onHtmlChange(e.target.value)}
-                className="flex-1 w-full p-4 font-mono text-sm border-0 resize-none focus:outline-none focus:ring-2 focus:ring-orange-200 dark:focus:ring-orange-800 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
-                placeholder="Start typing your HTML here..."
-                spellCheck={false}
-              />
+              <div className="flex-1 relative">
+                <textarea
+                  value={htmlCode}
+                  onChange={(e) => onHtmlChange(e.target.value)}
+                  className="absolute inset-0 w-full h-full p-4 font-mono text-sm border-0 resize-none focus:outline-none focus:ring-2 focus:ring-orange-200 dark:focus:ring-orange-800 bg-transparent text-transparent caret-gray-900 dark:caret-gray-100 z-10"
+                  placeholder="Start typing your HTML here..."
+                  spellCheck={false}
+                />
+                <div className="absolute inset-0 p-4 pointer-events-none overflow-auto">
+                  <SyntaxHighlighter
+                    code={htmlCode || "Start typing your HTML here..."}
+                    language="html"
+                    className="text-gray-900 dark:text-gray-100"
+                  />
+                </div>
+              </div>
             </div>
           </TabsContent>
 
@@ -71,17 +80,26 @@ export const CodeEditor = ({
               <div className="bg-gray-100 dark:bg-gray-800 px-4 py-2 text-sm text-gray-600 dark:text-gray-400 border-b dark:border-gray-700">
                 <p>🎨 Style your webpage with CSS:</p>
               </div>
-              <textarea
-                value={cssCode}
-                onChange={(e) => onCssChange(e.target.value)}
-                className="flex-1 w-full p-4 font-mono text-sm border-0 resize-none focus:outline-none focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-800 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
-                placeholder="/* Add your CSS styles here */
+              <div className="flex-1 relative">
+                <textarea
+                  value={cssCode}
+                  onChange={(e) => onCssChange(e.target.value)}
+                  className="absolute inset-0 w-full h-full p-4 font-mono text-sm border-0 resize-none focus:outline-none focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-800 bg-transparent text-transparent caret-gray-900 dark:caret-gray-100 z-10"
+                  placeholder="/* Add your CSS styles here */
 body {
   background-color: lightblue;
   font-family: Arial, sans-serif;
 }"
-                spellCheck={false}
-              />
+                  spellCheck={false}
+                />
+                <div className="absolute inset-0 p-4 pointer-events-none overflow-auto">
+                  <SyntaxHighlighter
+                    code={cssCode || "/* Add your CSS styles here */\nbody {\n  background-color: lightblue;\n  font-family: Arial, sans-serif;\n}"}
+                    language="css"
+                    className="text-gray-900 dark:text-gray-100"
+                  />
+                </div>
+              </div>
             </div>
           </TabsContent>
 
@@ -90,16 +108,25 @@ body {
               <div className="bg-gray-100 dark:bg-gray-800 px-4 py-2 text-sm text-gray-600 dark:text-gray-400 border-b dark:border-gray-700">
                 <p>⚡ Add interactivity with JavaScript:</p>
               </div>
-              <textarea
-                value={jsCode}
-                onChange={(e) => onJsChange(e.target.value)}
-                className="flex-1 w-full p-4 font-mono text-sm border-0 resize-none focus:outline-none focus:ring-2 focus:ring-yellow-200 dark:focus:ring-yellow-800 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
-                placeholder="// Add your JavaScript code here
+              <div className="flex-1 relative">
+                <textarea
+                  value={jsCode}
+                  onChange={(e) => onJsChange(e.target.value)}
+                  className="absolute inset-0 w-full h-full p-4 font-mono text-sm border-0 resize-none focus:outline-none focus:ring-2 focus:ring-yellow-200 dark:focus:ring-yellow-800 bg-transparent text-transparent caret-gray-900 dark:caret-gray-100 z-10"
+                  placeholder="// Add your JavaScript code here
 document.getElementById('myButton').addEventListener('click', function() {
   alert('Hello World!');
 });"
-                spellCheck={false}
-              />
+                  spellCheck={false}
+                />
+                <div className="absolute inset-0 p-4 pointer-events-none overflow-auto">
+                  <SyntaxHighlighter
+                    code={jsCode || "// Add your JavaScript code here\ndocument.getElementById('myButton').addEventListener('click', function() {\n  alert('Hello World!');\n});"}
+                    language="javascript"
+                    className="text-gray-900 dark:text-gray-100"
+                  />
+                </div>
+              </div>
             </div>
           </TabsContent>
         </div>
@@ -107,4 +134,3 @@ document.getElementById('myButton').addEventListener('click', function() {
     </div>
   );
 };
-
