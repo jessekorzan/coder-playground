@@ -47,46 +47,46 @@ export const CodeEditor = ({
   return (
     <div className="h-full bg-white dark:bg-gray-900">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
-        <TabsList className="grid w-full grid-cols-3 rounded-none border-b bg-gray-50 dark:bg-gray-800 dark:border-gray-700">
+        <TabsList className="grid w-full grid-cols-3 rounded-none border-b bg-gray-50 dark:bg-gray-800 border-gray-100 dark:border-gray-700 h-12">
           <TabsTrigger 
             value="html" 
-            className="flex items-center space-x-2 data-[state=active]:bg-orange-100 dark:data-[state=active]:bg-orange-900 data-[state=active]:text-orange-700 dark:data-[state=active]:text-orange-300 dark:text-gray-300"
+            className="flex items-center space-x-2 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-900 data-[state=active]:text-gray-900 dark:data-[state=active]:text-white text-gray-600 dark:text-gray-400 font-medium text-sm data-[state=active]:border-b-2 data-[state=active]:border-gray-900 dark:data-[state=active]:border-white rounded-none"
           >
             <FileCode className="w-4 h-4" />
-            <span>index.html</span>
+            <span>HTML</span>
           </TabsTrigger>
           <TabsTrigger 
             value="css" 
-            className="flex items-center space-x-2 data-[state=active]:bg-blue-100 dark:data-[state=active]:bg-blue-900 data-[state=active]:text-blue-700 dark:data-[state=active]:text-blue-300 dark:text-gray-300"
+            className="flex items-center space-x-2 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-900 data-[state=active]:text-gray-900 dark:data-[state=active]:text-white text-gray-600 dark:text-gray-400 font-medium text-sm data-[state=active]:border-b-2 data-[state=active]:border-gray-900 dark:data-[state=active]:border-white rounded-none"
           >
             <Palette className="w-4 h-4" />
-            <span>style.css</span>
+            <span>CSS</span>
           </TabsTrigger>
           <TabsTrigger 
             value="js" 
-            className="flex items-center space-x-2 data-[state=active]:bg-yellow-100 dark:data-[state=active]:bg-yellow-900 data-[state=active]:text-yellow-700 dark:data-[state=active]:text-yellow-300 dark:text-gray-300"
+            className="flex items-center space-x-2 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-900 data-[state=active]:text-gray-900 dark:data-[state=active]:text-white text-gray-600 dark:text-gray-400 font-medium text-sm data-[state=active]:border-b-2 data-[state=active]:border-gray-900 dark:data-[state=active]:border-white rounded-none"
           >
             <Zap className="w-4 h-4" />
-            <span>script.js</span>
+            <span>JavaScript</span>
           </TabsTrigger>
         </TabsList>
 
         <div className="flex-1 overflow-hidden">
           <TabsContent value="html" className="h-full m-0">
             <div className="h-full flex flex-col">
-              <div className="bg-gray-100 dark:bg-gray-800 px-4 py-2 text-sm text-gray-600 dark:text-gray-400 border-b dark:border-gray-700">
-                <p>✏️ Edit your HTML here (only the content inside &lt;body&gt; tags):</p>
+              <div className="bg-gray-50 dark:bg-gray-800 px-6 py-3 text-sm text-gray-600 dark:text-gray-400 border-b border-gray-100 dark:border-gray-700">
+                <p>Edit your HTML structure</p>
               </div>
               <div className="flex-1 relative">
                 <textarea
                   value={htmlCode}
                   onChange={(e) => onHtmlChange(e.target.value)}
                   onKeyDown={(e) => handleKeyDown(e, onHtmlChange)}
-                  className="absolute inset-0 w-full h-full p-4 font-mono text-sm border-0 resize-none focus:outline-none focus:ring-2 focus:ring-orange-200 dark:focus:ring-orange-800 bg-transparent text-transparent caret-gray-900 dark:caret-gray-100 z-10"
+                  className="absolute inset-0 w-full h-full p-6 font-mono text-sm border-0 resize-none focus:outline-none bg-transparent text-transparent caret-gray-900 dark:caret-gray-100 z-10"
                   placeholder="Start typing your HTML here..."
                   spellCheck={false}
                 />
-                <div className="absolute inset-0 p-4 pointer-events-none overflow-auto">
+                <div className="absolute inset-0 p-6 pointer-events-none overflow-auto">
                   <SyntaxHighlighter
                     code={htmlCode || "Start typing your HTML here..."}
                     language="html"
@@ -99,15 +99,15 @@ export const CodeEditor = ({
 
           <TabsContent value="css" className="h-full m-0">
             <div className="h-full flex flex-col">
-              <div className="bg-gray-100 dark:bg-gray-800 px-4 py-2 text-sm text-gray-600 dark:text-gray-400 border-b dark:border-gray-700">
-                <p>🎨 Style your webpage with CSS:</p>
+              <div className="bg-gray-50 dark:bg-gray-800 px-6 py-3 text-sm text-gray-600 dark:text-gray-400 border-b border-gray-100 dark:border-gray-700">
+                <p>Style your webpage with CSS</p>
               </div>
               <div className="flex-1 relative">
                 <textarea
                   value={cssCode}
                   onChange={(e) => onCssChange(e.target.value)}
                   onKeyDown={(e) => handleKeyDown(e, onCssChange)}
-                  className="absolute inset-0 w-full h-full p-4 font-mono text-sm border-0 resize-none focus:outline-none focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-800 bg-transparent text-transparent caret-gray-900 dark:caret-gray-100 z-10"
+                  className="absolute inset-0 w-full h-full p-6 font-mono text-sm border-0 resize-none focus:outline-none bg-transparent text-transparent caret-gray-900 dark:caret-gray-100 z-10"
                   placeholder="/* Add your CSS styles here */
 body {
   background-color: lightblue;
@@ -115,7 +115,7 @@ body {
 }"
                   spellCheck={false}
                 />
-                <div className="absolute inset-0 p-4 pointer-events-none overflow-auto">
+                <div className="absolute inset-0 p-6 pointer-events-none overflow-auto">
                   <SyntaxHighlighter
                     code={cssCode || "/* Add your CSS styles here */\nbody {\n  background-color: lightblue;\n  font-family: Arial, sans-serif;\n}"}
                     language="css"
@@ -128,22 +128,22 @@ body {
 
           <TabsContent value="js" className="h-full m-0">
             <div className="h-full flex flex-col">
-              <div className="bg-gray-100 dark:bg-gray-800 px-4 py-2 text-sm text-gray-600 dark:text-gray-400 border-b dark:border-gray-700">
-                <p>⚡ Add interactivity with JavaScript:</p>
+              <div className="bg-gray-50 dark:bg-gray-800 px-6 py-3 text-sm text-gray-600 dark:text-gray-400 border-b border-gray-100 dark:border-gray-700">
+                <p>Add interactivity with JavaScript</p>
               </div>
               <div className="flex-1 relative">
                 <textarea
                   value={jsCode}
                   onChange={(e) => onJsChange(e.target.value)}
                   onKeyDown={(e) => handleKeyDown(e, onJsChange)}
-                  className="absolute inset-0 w-full h-full p-4 font-mono text-sm border-0 resize-none focus:outline-none focus:ring-2 focus:ring-yellow-200 dark:focus:ring-yellow-800 bg-transparent text-transparent caret-gray-900 dark:caret-gray-100 z-10"
+                  className="absolute inset-0 w-full h-full p-6 font-mono text-sm border-0 resize-none focus:outline-none bg-transparent text-transparent caret-gray-900 dark:caret-gray-100 z-10"
                   placeholder="// Add your JavaScript code here
 document.getElementById('myButton').addEventListener('click', function() {
   alert('Hello World!');
 });"
                   spellCheck={false}
                 />
-                <div className="absolute inset-0 p-4 pointer-events-none overflow-auto">
+                <div className="absolute inset-0 p-6 pointer-events-none overflow-auto">
                   <SyntaxHighlighter
                     code={jsCode || "// Add your JavaScript code here\ndocument.getElementById('myButton').addEventListener('click', function() {\n  alert('Hello World!');\n});"}
                     language="javascript"

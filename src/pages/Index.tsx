@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { CodeEditor } from '@/components/CodeEditor';
 import { AiAssistant } from '@/components/AiAssistant';
@@ -157,27 +158,27 @@ document.getElementById('my-button').addEventListener('click', function() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Header */}
-      <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
-        <div className="w-full px-4 sm:px-6 lg:px-8">
+      <header className="bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
+        <div className="w-full px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              <h1 className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">Code Cadet</h1>
-              <span className="ml-3 text-sm text-gray-500 dark:text-gray-400">Your First Coding Adventure</span>
+              <h1 className="text-xl font-medium text-gray-900 dark:text-white">code cadet</h1>
+              <span className="ml-4 text-sm text-gray-500 dark:text-gray-400">Your coding workspace</span>
             </div>
-            <div className="flex space-x-4">
+            <div className="flex items-center space-x-3">
               <Button
                 onClick={toggleDarkMode}
-                variant="outline"
+                variant="ghost"
                 size="icon"
-                className="border-indigo-300 dark:border-indigo-600 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900"
+                className="text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 border-0"
               >
                 {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
               </Button>
               <Button
                 onClick={handlePreview}
-                className="bg-green-500 hover:bg-green-600 text-white"
+                className="bg-gray-900 hover:bg-gray-800 text-white text-sm font-medium px-4 py-2 rounded-lg dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100"
               >
                 <Eye className="w-4 h-4 mr-2" />
                 Preview
@@ -185,10 +186,10 @@ document.getElementById('my-button').addEventListener('click', function() {
               <Button
                 onClick={handleDownload}
                 variant="outline"
-                className="border-indigo-300 dark:border-indigo-600 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900"
+                className="border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 text-sm font-medium px-4 py-2 rounded-lg"
               >
                 <Download className="w-4 h-4 mr-2" />
-                Download ZIP
+                Download
               </Button>
             </div>
           </div>
@@ -198,7 +199,7 @@ document.getElementById('my-button').addEventListener('click', function() {
       {/* Main Content */}
       <div className="flex h-[calc(100vh-4rem)]">
         {/* Left Panel - Code Editor */}
-        <div className="w-[70%] border-r border-gray-200 dark:border-gray-700">
+        <div className="w-[70%] border-r border-gray-100 dark:border-gray-700">
           <CodeEditor
             htmlCode={htmlCode}
             cssCode={cssCode}
@@ -210,7 +211,7 @@ document.getElementById('my-button').addEventListener('click', function() {
         </div>
 
         {/* Right Panel - AI Assistant */}
-        <div className="w-[30%] bg-white dark:bg-gray-800">
+        <div className="w-[30%] bg-gray-50 dark:bg-gray-800">
           <AiAssistant />
         </div>
       </div>
