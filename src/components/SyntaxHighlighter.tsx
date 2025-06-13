@@ -1,4 +1,12 @@
-import React from 'react';
+
+import React, { useEffect, useRef } from 'react';
+import Prism from 'prismjs';
+import 'prismjs/components/prism-css';
+import 'prismjs/components/prism-javascript';
+import 'prismjs/components/prism-markup';
+
+// Import custom CSS for our theme
+import './prism-custom.css';
 
 interface SyntaxHighlighterProps {
   code: string;
@@ -11,137 +19,39 @@ export const SyntaxHighlighter: React.FC<SyntaxHighlighterProps> = ({
   language,
   className = '',
 }) => {
-  const highlightCode = (code: string, lang: 'html' | 'css' | 'javascript') => {
-    if (!code) return '';
+  const codeRef = useRef<HTMLElement>(null);
 
-    // Escape HTML first
-    let highlightedCode = code
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#x27;');
+  useEffect(() => {
+    if (codeRef.current) {
+      Prism.highlightElement(codeRef.current);
+    }
+  }, [code, language]);
 
+  // Map our language names to Prism language names
+  const getPrismLanguage = (lang: 'html' | 'css' | 'javascript') => {
     switch (lang) {
       case 'html':
-        // HTML comments first (highest priority)
-        highlightedCode = highlightedCode.replace(
-          /(&lt;!--.*?--&gt;)/gs,
-          '<span class="text-gray-500 dark:text-gray-400 italic">$1</span>'
-        );
-        
-        // HTML attribute values (strings in quotes)
-        highlightedCode = highlightedCode.replace(
-          /=(&quot;[^&quot;]*&quot;|&#x27;[^&#x27;]*&#x27;)/g,
-          '=<span class="text-orange-600 dark:text-orange-400">$1</span>'
-        );
-        
-        // HTML attributes (attribute names before =)
-        highlightedCode = highlightedCode.replace(
-          /\s([a-zA-Z-]+)=/g,
-          ' <span class="text-green-600 dark:text-green-400">$1</span>='
-        );
-        
-        // HTML tag names (between < and > or space)
-        highlightedCode = highlightedCode.replace(
-          /(&lt;\/?)\s*([a-zA-Z][a-zA-Z0-9-]*)/g,
-          '$1<span class="text-blue-600 dark:text-blue-400 font-semibold">$2</span>'
-        );
-        
-        // HTML tag brackets
-        highlightedCode = highlightedCode.replace(
-          /(&lt;|&gt;)/g,
-          '<span class="text-blue-600 dark:text-blue-400 font-semibold">$1</span>'
-        );
-        break;
-
+        return 'markup';
       case 'css':
-        // CSS comments first
-        highlightedCode = highlightedCode.replace(
-          /(\/\*[\s\S]*?\*\/)/g,
-          '<span class="text-gray-500 dark:text-gray-400 italic">$1</span>'
-        );
-        
-        // CSS selectors (must come before property highlighting)
-        highlightedCode = highlightedCode.replace(
-          /(^|\n|})(\s*)([.#]?[a-zA-Z][a-zA-Z0-9-_]*(?::hover|:focus|:active|:before|:after)?(?:\s*,\s*[.#]?[a-zA-Z][a-zA-Z0-9-_]*(?::hover|:focus|:active|:before|:after)?)*)\s*(\{)/gm,
-          '$1$2<span class="text-purple-600 dark:text-purple-400 font-semibold">$3</span> $4'
-        );
-        
-        // CSS strings in quotes
-        highlightedCode = highlightedCode.replace(
-          /(&#x27;[^&#x27;]*&#x27;|&quot;[^&quot;]*&quot;)/g,
-          '<span class="text-orange-600 dark:text-orange-400">$1</span>'
-        );
-        
-        // CSS color values (hex colors)
-        highlightedCode = highlightedCode.replace(
-          /(#[0-9a-fA-F]{3,8})\b/g,
-          '<span class="text-yellow-600 dark:text-yellow-400">$1</span>'
-        );
-        
-        // CSS function values (rgba, linear-gradient, etc)
-        highlightedCode = highlightedCode.replace(
-          /\b([a-zA-Z-]+)(\()/g,
-          '<span class="text-purple-600 dark:text-purple-400">$1</span>$2'
-        );
-        
-        // CSS numeric values with units
-        highlightedCode = highlightedCode.replace(
-          /\b(\d+(?:\.\d+)?)(px|em|rem|%|vh|vw|deg|s|ms|fr)\b/g,
-          '<span class="text-orange-600 dark:text-orange-400">$1$2</span>'
-        );
-        
-        // CSS properties (before :)
-        highlightedCode = highlightedCode.replace(
-          /([a-zA-Z-]+)(\s*:)/g,
-          '<span class="text-blue-600 dark:text-blue-400">$1</span>$2'
-        );
-        break;
-
+        return 'css';
       case 'javascript':
-        // JavaScript comments first
-        highlightedCode = highlightedCode.replace(
-          /(\/\/.*$)/gm,
-          '<span class="text-gray-500 dark:text-gray-400 italic">$1</span>'
-        );
-        highlightedCode = highlightedCode.replace(
-          /(\/\*[\s\S]*?\*\/)/g,
-          '<span class="text-gray-500 dark:text-gray-400 italic">$1</span>'
-        );
-        
-        // JavaScript strings (single and double quotes)
-        highlightedCode = highlightedCode.replace(
-          /(&#x27;[^&#x27;]*&#x27;|&quot;[^&quot;]*&quot;|`[^`]*`)/g,
-          '<span class="text-green-600 dark:text-green-400">$1</span>'
-        );
-        
-        // JavaScript keywords
-        highlightedCode = highlightedCode.replace(
-          /\b(function|var|let|const|if|else|for|while|return|true|false|null|undefined|document|console|addEventListener|getElementById)\b/g,
-          '<span class="text-purple-600 dark:text-purple-400 font-semibold">$1</span>'
-        );
-        
-        // JavaScript methods (after a dot)
-        highlightedCode = highlightedCode.replace(
-          /\.([a-zA-Z][a-zA-Z0-9]*)\(/g,
-          '.<span class="text-orange-600 dark:text-orange-400">$1</span>('
-        );
-        break;
-
+        return 'javascript';
       default:
-        break;
+        return 'markup';
     }
-
-    return highlightedCode;
   };
 
-  const highlightedCode = highlightCode(code, language);
+  const prismLanguage = getPrismLanguage(language);
 
   return (
-    <div
-      className={`font-mono text-sm whitespace-pre-wrap ${className}`}
-      dangerouslySetInnerHTML={{ __html: highlightedCode }}
-    />
+    <pre className={`font-mono text-sm whitespace-pre-wrap ${className}`}>
+      <code
+        ref={codeRef}
+        className={`language-${prismLanguage}`}
+        style={{ background: 'transparent' }}
+      >
+        {code}
+      </code>
+    </pre>
   );
 };
