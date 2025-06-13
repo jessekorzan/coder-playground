@@ -14,7 +14,12 @@ interface Message {
   timestamp: Date;
 }
 
-export const AiAssistant = () => {
+interface AiAssistantProps {
+  externalPrompt?: string;
+  onPromptProcessed?: () => void;
+}
+
+export const AiAssistant = ({ externalPrompt, onPromptProcessed }: AiAssistantProps = {}) => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -27,6 +32,89 @@ export const AiAssistant = () => {
   const [isLoading, setIsLoading] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const handleAIRequest = async (prompt: string) => {
+    setIsLoading(true);
+
+    try {
+      const response = await fetch('https://n8n-service-u37x.onrender.com/webhook/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          chatInput: prompt
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      let aiResponse = data.data || data.output || data.response || data.message || 'Sorry, I couldn\'t process your request right now. Please try again.';
+      
+      if (typeof aiResponse === 'string' && aiResponse.includes('<')) {
+        aiResponse = aiResponse
+          .replace(/<h3>/g, '\n**')
+          .replace(/<\/h3>/g, '**\n')
+          .replace(/<p>/g, '\n')
+          .replace(/<\/p>/g, '\n')
+          .replace(/<main>/g, '')
+          .replace(/<\/main>/g, '')
+          .replace(/<footer>/g, '\n\n---\n')
+          .replace(/<\/footer>/g, '\n')
+          .replace(/<section>/g, '\n\nSuggestions:')
+          .replace(/<\/section>/g, '')
+          .replace(/<a[^>]*onclick="[^"]*"[^>]*>/g, '• ')
+          .replace(/<\/a>/g, '')
+          .replace(/\n\s*\n\s*\n/g, '\n\n')
+          .trim();
+      }
+      
+      const assistantMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        type: 'assistant',
+        content: aiResponse,
+        timestamp: new Date(),
+      };
+
+      setMessages(prev => [...prev, assistantMessage]);
+    } catch (error) {
+      console.error('Error calling AI webhook:', error);
+      
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        type: 'assistant',
+        content: 'Sorry, I\'m having trouble connecting to the AI service right now. Please try again in a moment.',
+        timestamp: new Date(),
+      };
+
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
+      requestAnimationFrame(() => {
+        inputRef.current?.focus();
+      });
+    }
+  };
+
+  // Handle external prompts from context menu
+  useEffect(() => {
+    if (externalPrompt) {
+      const userMessage: Message = {
+        id: Date.now().toString(),
+        type: 'user',
+        content: externalPrompt,
+        timestamp: new Date(),
+      };
+
+      setMessages(prev => [...prev, userMessage]);
+      handleAIRequest(externalPrompt);
+      onPromptProcessed?.();
+    }
+  }, [externalPrompt]);
 
   const scrollToBottom = () => {
     if (scrollAreaRef.current) {

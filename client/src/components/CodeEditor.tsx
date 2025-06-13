@@ -201,6 +201,7 @@ body {
                   value={jsCode}
                   onChange={(e) => onJsChange(e.target.value)}
                   onKeyDown={(e) => handleKeyDown(e, onJsChange)}
+                  onContextMenu={(e) => handleContextMenu(e, 'javascript')}
                   className="absolute inset-0 w-full h-full p-6 font-mono text-sm border-0 resize-none focus:outline-none bg-transparent text-transparent caret-gray-900 dark:caret-gray-100 z-10"
                   placeholder="// Add your JavaScript code here
 document.getElementById('myButton').addEventListener('click', function() {
@@ -220,6 +221,16 @@ document.getElementById('myButton').addEventListener('click', function() {
           </TabsContent>
         </div>
       </Tabs>
+      
+      <CodeContextMenu
+        visible={contextMenu.visible}
+        x={contextMenu.x}
+        y={contextMenu.y}
+        selectedCode={contextMenu.selectedCode}
+        language={contextMenu.language}
+        onClose={closeContextMenu}
+        onAction={handleAiAction}
+      />
     </div>
   );
 };
