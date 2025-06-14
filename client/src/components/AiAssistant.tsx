@@ -424,16 +424,16 @@ Focus on fun improvements like colors, animations, interactive elements, or cool
                                         onClick={() => applySuggestion(suggestion)}
                                         disabled={applyingCode === suggestion.id}
                                         size="sm"
-                                        className="bg-green-500 hover:bg-green-600 text-white h-6 text-xs px-2"
+                                        className="bg-emerald-500 hover:bg-emerald-600 disabled:bg-emerald-400 text-white h-7 text-xs px-3 rounded-md font-medium transition-all duration-200 shadow-sm hover:shadow-md"
                                       >
                                         {applyingCode === suggestion.id ? (
                                           <>
-                                            <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                                            <Loader2 className="w-3 h-3 mr-1.5 animate-spin" />
                                             Applying...
                                           </>
                                         ) : (
                                           <>
-                                            <Plus className="w-3 h-3 mr-1" />
+                                            <Plus className="w-3 h-3 mr-1.5" />
                                             Apply
                                           </>
                                         )}
