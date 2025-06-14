@@ -168,7 +168,7 @@ const Index = () => {
       let analysisPrompt = '';
       
       if (!codeContext.hasContent) {
-        analysisPrompt = `I'm starting a new web project. Give me 3 practical code snippet recommendations to help me get started. Format each recommendation as:
+        analysisPrompt = `I'm starting a new web project. Give me 3 fun code snippet recommendations to help me get started. Important - Respond to me with *ONLY* the recommendations in the following schema:
 
 **[Title]**
 Brief description
@@ -205,7 +205,7 @@ Brief description
 code snippet
 \`\`\`
 
-Focus on fun improvements like colors, animations, interactive elements, or cool visual effects that kids would enjoy.`;
+Focus on quirky ideas for interactive elements, colourful effects, and visually impressive enhancements.`;
       }
 
       const aiResponse = await fetch('https://n8n-service-u37x.onrender.com/webhook/chat', {
@@ -419,7 +419,7 @@ Focus on fun improvements like colors, animations, interactive elements, or cool
     
     // Ask AI to refactor the merged code for validity and error-free output
     try {
-      const refactorPrompt = `Please refactor this ${targetLanguage} code to ensure it's valid, error-free, and follows best practices. Return only the cleaned code without explanations:
+      const refactorPrompt = `Please review this ${targetLanguage} code. Maintain it's original intent, but refactor and validate for error and redunancy free code. Return only the cleaned code without explanations:
 
 \`\`\`${targetLanguage}
 ${mergedCode}
@@ -716,20 +716,13 @@ document.getElementById('my-button').addEventListener('click', function() {
           style={{ width: `${100 - leftPanelWidth}%` }}
         >
           <Tabs value={activeAssistantTab} onValueChange={setActiveAssistantTab} className="h-full flex flex-col">
-            <TabsList className="grid w-full grid-cols-3 rounded-none border-b bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 h-12 flex-shrink-0">
+            <TabsList className="grid w-full grid-cols-2 rounded-none border-b bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 h-12 flex-shrink-0">
               <TabsTrigger 
                 value="ai" 
                 className="flex items-center space-x-2 data-[state=active]:bg-gray-50 dark:data-[state=active]:bg-gray-700 data-[state=active]:text-gray-900 dark:data-[state=active]:text-white text-gray-600 dark:text-gray-400 font-medium text-sm rounded-none"
               >
                 <Bot className="w-4 h-4" />
-                <span>AI Chat</span>
-              </TabsTrigger>
-              <TabsTrigger 
-                value="recommendations" 
-                className="flex items-center space-x-2 data-[state=active]:bg-gray-50 dark:data-[state=active]:bg-gray-700 data-[state=active]:text-gray-900 dark:data-[state=active]:text-white text-gray-600 dark:text-gray-400 font-medium text-sm rounded-none"
-              >
-                <Lightbulb className="w-4 h-4" />
-                <span>Suggestions</span>
+                <span>AI Assistant</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="preview" 

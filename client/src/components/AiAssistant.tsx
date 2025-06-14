@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Send, Bot, User } from 'lucide-react';
+import { Send, Bot, User, Lightbulb, Copy, Plus, Loader2 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
@@ -11,14 +11,34 @@ interface Message {
   type: 'user' | 'assistant';
   content: string;
   timestamp: Date;
+  suggestions?: CodeSuggestion[];
+}
+
+interface CodeSuggestion {
+  id: string;
+  title: string;
+  description: string;
+  code: string;
+  language: string;
 }
 
 interface AiAssistantProps {
   externalPrompt?: string;
   onPromptProcessed?: () => void;
+  htmlCode?: string;
+  cssCode?: string;
+  jsCode?: string;
+  onApplyCode?: (code: string, language: string) => Promise<void>;
 }
 
-export const AiAssistant = ({ externalPrompt, onPromptProcessed }: AiAssistantProps = {}) => {
+export const AiAssistant = ({ 
+  externalPrompt, 
+  onPromptProcessed, 
+  htmlCode = '', 
+  cssCode = '', 
+  jsCode = '', 
+  onApplyCode 
+}: AiAssistantProps = {}) => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -34,6 +54,8 @@ I'm your AI learning assistant. I'm here to help you learn **HTML**, **CSS**, an
 - What does this code do?
 - How do I center text?
 
+Or type **"suggestions"** to get AI-powered code recommendations based on your current project!
+
 ---
 
 **What would you like to learn today?**`,
@@ -42,14 +64,145 @@ I'm your AI learning assistant. I'm here to help you learn **HTML**, **CSS**, an
   ]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
+  const [applyingCode, setApplyingCode] = useState<string | null>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Generate code suggestions based on current project
+  const generateCodeSuggestions = async () => {
+    setIsLoadingSuggestions(true);
+    
+    try {
+      const codeContext = {
+        html: htmlCode.trim(),
+        css: cssCode.trim(),
+        js: jsCode.trim(),
+        hasContent: Boolean(htmlCode.trim() || cssCode.trim() || jsCode.trim())
+      };
+
+      let analysisPrompt = '';
+      
+      if (!codeContext.hasContent) {
+        analysisPrompt = `I'm starting a new web project. Give me 3 practical code snippet recommendations to help me get started. Format each recommendation as:
+
+**[Title]**
+Brief description
+\`\`\`[language]
+code snippet
+\`\`\`
+
+Focus on:
+1. Basic HTML structure
+2. Simple CSS styling
+3. Interactive JavaScript element`;
+      } else {
+        analysisPrompt = `Analyze this code and provide 3 specific improvement recommendations:
+
+HTML:
+\`\`\`html
+${codeContext.html || '(empty)'}
+\`\`\`
+
+CSS:
+\`\`\`css
+${codeContext.css || '(empty)'}
+\`\`\`
+
+JavaScript:
+\`\`\`javascript
+${codeContext.js || '(empty)'}
+\`\`\`
+
+Format each recommendation as:
+**[Title]**
+Brief description
+\`\`\`[language]
+code snippet
+\`\`\`
+
+Focus on fun improvements like colors, animations, interactive elements, or cool visual effects that kids would enjoy.`;
+      }
+
+      const aiResponse = await fetch('https://n8n-service-u37x.onrender.com/webhook/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          chatInput: analysisPrompt
+        }),
+      });
+
+      if (aiResponse.ok) {
+        const data = await aiResponse.json();
+        let aiContent = data.data || data.output || data.response || data.message || '';
+        
+        // Clean up HTML tags if present
+        if (typeof aiContent === 'string' && aiContent.includes('<')) {
+          aiContent = aiContent
+            .replace(/<h3>/g, '\n**')
+            .replace(/<\/h3>/g, '**\n')
+            .replace(/<p>/g, '\n')
+            .replace(/<\/p>/g, '\n')
+            .replace(/<main>/g, '')
+            .replace(/<\/main>/g, '')
+            .replace(/<footer>/g, '\n\n---\n')
+            .replace(/<\/footer>/g, '\n')
+            .replace(/<section>/g, '\n\nSuggestions:')
+            .replace(/<\/section>/g, '')
+            .replace(/<a[^>]*onclick="[^"]*"[^>]*>/g, '• ')
+            .replace(/<\/a>/g, '')
+            .replace(/\n\s*\n\s*\n/g, '\n\n')
+            .trim();
+        }
+
+        // Parse recommendations from AI response
+        const recommendationBlocks = aiContent.split('**').filter((block: string) => block.trim());
+        const parsedRecommendations: CodeSuggestion[] = [];
+        
+        for (let i = 0; i < recommendationBlocks.length; i += 2) {
+          if (recommendationBlocks[i] && recommendationBlocks[i + 1]) {
+            const title = recommendationBlocks[i].trim();
+            const content = recommendationBlocks[i + 1].trim();
+            
+            // Extract code snippet if present
+            const codeMatch = content.match(/```(\w+)?\s*([\s\S]*?)```/);
+            const description = content.replace(/```[\s\S]*?```/g, '').trim();
+            
+            parsedRecommendations.push({
+              id: Date.now() + i + '',
+              title,
+              description,
+              code: codeMatch ? codeMatch[2].trim() : '',
+              language: codeMatch ? codeMatch[1] || 'html' : 'html'
+            });
+          }
+        }
+
+        // Add suggestions message to chat
+        const suggestionsMessage: Message = {
+          id: Date.now().toString(),
+          type: 'assistant',
+          content: `Here are some code suggestions for your project:`,
+          timestamp: new Date(),
+          suggestions: parsedRecommendations
+        };
+
+        setMessages(prev => [...prev, suggestionsMessage]);
+      }
+    } catch (error) {
+      console.error('Error generating suggestions:', error);
+    } finally {
+      setIsLoadingSuggestions(false);
+    }
+  };
 
   const handleAIRequest = async (prompt: string) => {
     setIsLoading(true);
 
     try {
-      const response = await fetch('https://n8n-service-u37x.onrender.com/webhook/agent-html', {
+      const response = await fetch('https://n8n-service-u37x.onrender.com/webhook/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
