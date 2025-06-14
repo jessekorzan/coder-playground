@@ -438,14 +438,14 @@ Focus on fun improvements like colors, animations, interactive elements, or cool
                                 )}
                                 
                                 {suggestion.code && (
-                                  <div className="bg-gray-900 dark:bg-gray-950 rounded p-2">
-                                    <div className="flex items-center justify-between mb-1">
+                                  <div className="bg-gray-900 dark:bg-black rounded p-3 border border-gray-700 dark:border-gray-600">
+                                    <div className="flex items-center justify-between mb-2">
                                       <span className="text-xs text-gray-400 uppercase font-medium">
                                         {suggestion.language}
                                       </span>
                                     </div>
-                                    <pre className="text-xs text-gray-100 overflow-x-auto">
-                                      <code>{suggestion.code}</code>
+                                    <pre className="text-sm text-green-400 dark:text-green-300 overflow-x-auto font-mono leading-relaxed">
+                                      <code className="text-green-400 dark:text-green-300">{suggestion.code}</code>
                                     </pre>
                                   </div>
                                 )}
