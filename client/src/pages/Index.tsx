@@ -391,11 +391,8 @@ Focus on quirky ideas for interactive elements, colourful effects, and visually 
     return existingJs + '\n\n// Applied suggestion\n' + processedNewJs;
   };
 
-  // Apply a code recommendation to the editor with AI-powered refactoring
-  const applyRecommendation = async (recommendation: any) => {
-    const { code, language, id } = recommendation;
-    setApplyingRecommendation(id);
-    
+  // Apply code suggestion from unified AI Assistant with AI-powered refactoring
+  const handleApplyCode = async (code: string, language: string): Promise<void> => {
     // First, merge the code intelligently
     let mergedCode = '';
     let targetLanguage = language.toLowerCase();
@@ -419,7 +416,7 @@ Focus on quirky ideas for interactive elements, colourful effects, and visually 
     
     // Ask AI to refactor the merged code for validity and error-free output
     try {
-      const refactorPrompt = `Please review this ${targetLanguage} code. Maintain it's original intent, but refactor and validate for error and redunancy free code. Return only the cleaned code without explanations:
+      const refactorPrompt = `Please review this ${targetLanguage} code. Maintain its original intent, but refactor and validate for error and redundancy free code. Return only the cleaned code without explanations:
 
 \`\`\`${targetLanguage}
 ${mergedCode}
@@ -500,8 +497,6 @@ Return only the refactored ${targetLanguage} code:`;
           setJsCode(mergedCode);
           break;
       }
-    } finally {
-      setApplyingRecommendation(null);
     }
     
     // Switch to the appropriate tab
@@ -738,6 +733,10 @@ document.getElementById('my-button').addEventListener('click', function() {
                 <AiAssistant 
                   externalPrompt={aiPrompt}
                   onPromptProcessed={handlePromptProcessed}
+                  htmlCode={htmlCode}
+                  cssCode={cssCode}
+                  jsCode={jsCode}
+                  onApplyCode={handleApplyCode}
                 />
               </div>
             </TabsContent>

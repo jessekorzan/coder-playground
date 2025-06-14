@@ -313,7 +313,36 @@ Focus on fun improvements like colors, animations, interactive elements, or cool
       inputRef.current?.focus();
     });
 
-    await handleAIRequest(currentInput);
+    // Check if user is asking for suggestions
+    const lowerInput = currentInput.toLowerCase();
+    if (lowerInput.includes('suggestion') || lowerInput.includes('recommend') || lowerInput === 'suggestions') {
+      generateCodeSuggestions();
+    } else {
+      await handleAIRequest(currentInput);
+    }
+  };
+
+  // Apply code suggestion
+  const applySuggestion = async (suggestion: CodeSuggestion) => {
+    if (!onApplyCode) return;
+    
+    setApplyingCode(suggestion.id);
+    try {
+      await onApplyCode(suggestion.code, suggestion.language);
+    } catch (error) {
+      console.error('Error applying suggestion:', error);
+    } finally {
+      setApplyingCode(null);
+    }
+  };
+
+  // Copy code to clipboard
+  const copyToClipboard = async (code: string) => {
+    try {
+      await navigator.clipboard.writeText(code);
+    } catch (error) {
+      console.error('Failed to copy code:', error);
+    }
   };
 
   return (
@@ -355,9 +384,76 @@ Focus on fun improvements like colors, animations, interactive elements, or cool
                   )}
                   <div className="text-sm markdown-content min-w-0 flex-1">
                     {message.type === 'assistant' ? (
-                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                        {message.content}
-                      </ReactMarkdown>
+                      <>
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                          {message.content}
+                        </ReactMarkdown>
+                        {message.suggestions && message.suggestions.length > 0 && (
+                          <div className="mt-4 space-y-3">
+                            {message.suggestions.map((suggestion) => (
+                              <div 
+                                key={suggestion.id}
+                                className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3"
+                              >
+                                <div className="flex items-start justify-between mb-2">
+                                  <h4 className="font-medium text-gray-900 dark:text-gray-100 text-sm">
+                                    {suggestion.title}
+                                  </h4>
+                                  <div className="flex items-center space-x-1 ml-2">
+                                    <Button
+                                      onClick={() => copyToClipboard(suggestion.code)}
+                                      size="sm"
+                                      variant="ghost"
+                                      className="h-6 w-6 p-0"
+                                    >
+                                      <Copy className="w-3 h-3" />
+                                    </Button>
+                                    {onApplyCode && (
+                                      <Button
+                                        onClick={() => applySuggestion(suggestion)}
+                                        disabled={applyingCode === suggestion.id}
+                                        size="sm"
+                                        className="bg-green-500 hover:bg-green-600 text-white h-6 text-xs px-2"
+                                      >
+                                        {applyingCode === suggestion.id ? (
+                                          <>
+                                            <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                                            Applying...
+                                          </>
+                                        ) : (
+                                          <>
+                                            <Plus className="w-3 h-3 mr-1" />
+                                            Apply
+                                          </>
+                                        )}
+                                      </Button>
+                                    )}
+                                  </div>
+                                </div>
+                                
+                                {suggestion.description && (
+                                  <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">
+                                    {suggestion.description}
+                                  </p>
+                                )}
+                                
+                                {suggestion.code && (
+                                  <div className="bg-gray-900 dark:bg-gray-950 rounded p-2">
+                                    <div className="flex items-center justify-between mb-1">
+                                      <span className="text-xs text-gray-400 uppercase font-medium">
+                                        {suggestion.language}
+                                      </span>
+                                    </div>
+                                    <pre className="text-xs text-gray-100 overflow-x-auto">
+                                      <code>{suggestion.code}</code>
+                                    </pre>
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </>
                     ) : (
                       <div className="whitespace-pre-wrap">{message.content}</div>
                     )}
@@ -366,16 +462,23 @@ Focus on fun improvements like colors, animations, interactive elements, or cool
               </div>
             </div>
           ))}
-          {isLoading && (
+          {(isLoading || isLoadingSuggestions) && (
             <div className="flex justify-start">
               <div className="bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 shadow-sm rounded-lg p-3">
                 <div className="flex items-center space-x-2">
-                  <Bot className="w-4 h-4 text-indigo-500 dark:text-indigo-400" />
+                  {isLoadingSuggestions ? (
+                    <Lightbulb className="w-4 h-4 text-purple-500 dark:text-purple-400" />
+                  ) : (
+                    <Bot className="w-4 h-4 text-indigo-500 dark:text-indigo-400" />
+                  )}
                   <div className="flex space-x-1">
                     <div className="w-2 h-2 bg-indigo-300 dark:bg-indigo-500 rounded-full animate-bounce"></div>
                     <div className="w-2 h-2 bg-indigo-300 dark:bg-indigo-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
                     <div className="w-2 h-2 bg-indigo-300 dark:bg-indigo-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                   </div>
+                  <span className="text-sm text-gray-600 dark:text-gray-400">
+                    {isLoadingSuggestions ? 'Analyzing your code...' : 'Thinking...'}
+                  </span>
                 </div>
               </div>
             </div>
@@ -385,15 +488,36 @@ Focus on fun improvements like colors, animations, interactive elements, or cool
 
       {/* Input */}
       <div className="p-4 border-t bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+        <div className="flex space-x-2 mb-2">
+          <Button
+            onClick={generateCodeSuggestions}
+            disabled={isLoadingSuggestions}
+            variant="outline"
+            size="sm"
+            className="bg-purple-50 hover:bg-purple-100 border-purple-200 text-purple-700 dark:bg-purple-900 dark:hover:bg-purple-800 dark:border-purple-700 dark:text-purple-300"
+          >
+            {isLoadingSuggestions ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Analyzing...
+              </>
+            ) : (
+              <>
+                <Lightbulb className="w-4 h-4 mr-2" />
+                Get Code Suggestions
+              </>
+            )}
+          </Button>
+        </div>
         <form onSubmit={handleSubmit} className="flex space-x-2">
           <Input
             ref={inputRef}
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
-            placeholder="Ask me about HTML, CSS, or JavaScript..."
+            placeholder="Ask me about HTML, CSS, JavaScript, or type 'suggestions'..."
             className="flex-1 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400"
           />
-          <Button type="submit" disabled={!inputValue.trim() || isLoading} size="sm">
+          <Button type="submit" disabled={!inputValue.trim() || isLoading || isLoadingSuggestions} size="sm">
             <Send className="w-4 h-4" />
           </Button>
         </form>
