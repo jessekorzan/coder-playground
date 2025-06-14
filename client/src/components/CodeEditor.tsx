@@ -191,11 +191,13 @@ export const CodeEditor = ({
               </div>
               <div className="flex-1 relative">
                 <textarea
+                  ref={cssTextareaRef}
                   value={cssCode}
                   onChange={(e) => onCssChange(e.target.value)}
                   onKeyDown={(e) => handleKeyDown(e, onCssChange)}
                   onContextMenu={(e) => handleContextMenu(e, 'css')}
-                  className="absolute inset-0 w-full h-full p-6 font-mono text-sm border-0 resize-none focus:outline-none bg-transparent text-transparent caret-gray-900 dark:caret-gray-100 z-10"
+                  onScroll={handleScroll(cssTextareaRef, cssHighlighterRef)}
+                  className="absolute inset-0 w-full h-full p-6 font-mono text-sm border-0 resize-none focus:outline-none bg-transparent text-transparent caret-gray-900 dark:caret-gray-100 z-10 overflow-auto"
                   placeholder="/* Add your CSS styles here */
 body {
   background-color: lightblue;
@@ -203,7 +205,10 @@ body {
 }"
                   spellCheck={false}
                 />
-                <div className="absolute inset-0 p-6 pointer-events-none overflow-auto">
+                <div 
+                  ref={cssHighlighterRef}
+                  className="absolute inset-0 p-6 pointer-events-none overflow-hidden"
+                >
                   <SyntaxHighlighter
                     code={cssCode || "/* Add your CSS styles here */\nbody {\n  background-color: lightblue;\n  font-family: Arial, sans-serif;\n}"}
                     language="css"
@@ -221,18 +226,23 @@ body {
               </div>
               <div className="flex-1 relative">
                 <textarea
+                  ref={jsTextareaRef}
                   value={jsCode}
                   onChange={(e) => onJsChange(e.target.value)}
                   onKeyDown={(e) => handleKeyDown(e, onJsChange)}
                   onContextMenu={(e) => handleContextMenu(e, 'javascript')}
-                  className="absolute inset-0 w-full h-full p-6 font-mono text-sm border-0 resize-none focus:outline-none bg-transparent text-transparent caret-gray-900 dark:caret-gray-100 z-10"
+                  onScroll={handleScroll(jsTextareaRef, jsHighlighterRef)}
+                  className="absolute inset-0 w-full h-full p-6 font-mono text-sm border-0 resize-none focus:outline-none bg-transparent text-transparent caret-gray-900 dark:caret-gray-100 z-10 overflow-auto"
                   placeholder="// Add your JavaScript code here
 document.getElementById('myButton').addEventListener('click', function() {
   alert('Hello World!');
 });"
                   spellCheck={false}
                 />
-                <div className="absolute inset-0 p-6 pointer-events-none overflow-auto">
+                <div 
+                  ref={jsHighlighterRef}
+                  className="absolute inset-0 p-6 pointer-events-none overflow-hidden"
+                >
                   <SyntaxHighlighter
                     code={jsCode || "// Add your JavaScript code here\ndocument.getElementById('myButton').addEventListener('click', function() {\n  alert('Hello World!');\n});"}
                     language="javascript"
