@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { FileCode, Palette, Zap } from 'lucide-react';
 import { SyntaxHighlighter } from './SyntaxHighlighter';
@@ -38,6 +38,14 @@ export const CodeEditor = ({
     selectedCode: '',
     language: 'html',
   });
+
+  // Refs for scroll synchronization
+  const htmlTextareaRef = useRef<HTMLTextAreaElement>(null);
+  const htmlHighlighterRef = useRef<HTMLDivElement>(null);
+  const cssTextareaRef = useRef<HTMLTextAreaElement>(null);
+  const cssHighlighterRef = useRef<HTMLDivElement>(null);
+  const jsTextareaRef = useRef<HTMLTextAreaElement>(null);
+  const jsHighlighterRef = useRef<HTMLDivElement>(null);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>, onChange: (code: string) => void) => {
     if (e.key === 'Tab') {
@@ -107,6 +115,16 @@ export const CodeEditor = ({
     setContextMenu(prev => ({ ...prev, visible: false }));
   };
 
+  // Synchronize scroll between textarea and syntax highlighter
+  const handleScroll = (textareaRef: React.RefObject<HTMLTextAreaElement>, highlighterRef: React.RefObject<HTMLDivElement>) => {
+    return () => {
+      if (textareaRef.current && highlighterRef.current) {
+        highlighterRef.current.scrollTop = textareaRef.current.scrollTop;
+        highlighterRef.current.scrollLeft = textareaRef.current.scrollLeft;
+      }
+    };
+  };
+
   return (
     <div className="h-full bg-white dark:bg-gray-900">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
@@ -142,15 +160,20 @@ export const CodeEditor = ({
               </div>
               <div className="flex-1 relative">
                 <textarea
+                  ref={htmlTextareaRef}
                   value={htmlCode}
                   onChange={(e) => onHtmlChange(e.target.value)}
                   onKeyDown={(e) => handleKeyDown(e, onHtmlChange)}
                   onContextMenu={(e) => handleContextMenu(e, 'html')}
-                  className="absolute inset-0 w-full h-full p-6 font-mono text-sm border-0 resize-none focus:outline-none bg-transparent text-transparent caret-gray-900 dark:caret-gray-100 z-10"
+                  onScroll={handleScroll(htmlTextareaRef, htmlHighlighterRef)}
+                  className="absolute inset-0 w-full h-full p-6 font-mono text-sm border-0 resize-none focus:outline-none bg-transparent text-transparent caret-gray-900 dark:caret-gray-100 z-10 overflow-auto"
                   placeholder="Start typing your HTML here..."
                   spellCheck={false}
                 />
-                <div className="absolute inset-0 p-6 pointer-events-none overflow-auto">
+                <div 
+                  ref={htmlHighlighterRef}
+                  className="absolute inset-0 p-6 pointer-events-none overflow-hidden"
+                >
                   <SyntaxHighlighter
                     code={htmlCode || "Start typing your HTML here..."}
                     language="html"

@@ -198,7 +198,7 @@ Brief description
 code snippet
 \`\`\`
 
-Focus on practical improvements like accessibility, performance, modern CSS features, or interactive elements.`;
+Focus on fun improvements like colors, animations, interactive elements, or cool visual effects that kids would enjoy.`;
       }
 
       const aiResponse = await fetch('https://n8n-service-u37x.onrender.com/webhook/chat', {
@@ -261,6 +261,56 @@ Focus on practical improvements like accessibility, performance, modern CSS feat
       }
     } catch (error) {
       console.error('Error generating recommendations:', error);
+    }
+  };
+
+  // Apply a code recommendation to the editor
+  const applyRecommendation = (recommendation: any) => {
+    const { code, language } = recommendation;
+    
+    switch (language.toLowerCase()) {
+      case 'html':
+        setHtmlCode(prevCode => {
+          if (prevCode.trim()) {
+            return prevCode + '\n\n' + code;
+          }
+          return code;
+        });
+        break;
+      case 'css':
+        setCssCode(prevCode => {
+          if (prevCode.trim()) {
+            return prevCode + '\n\n' + code;
+          }
+          return code;
+        });
+        break;
+      case 'javascript':
+      case 'js':
+        setJsCode(prevCode => {
+          if (prevCode.trim()) {
+            return prevCode + '\n\n' + code;
+          }
+          return code;
+        });
+        break;
+      default:
+        // Default to HTML if language is unclear
+        setHtmlCode(prevCode => {
+          if (prevCode.trim()) {
+            return prevCode + '\n\n' + code;
+          }
+          return code;
+        });
+    }
+  };
+
+  // Copy code snippet to clipboard
+  const copyToClipboard = async (code: string) => {
+    try {
+      await navigator.clipboard.writeText(code);
+    } catch (error) {
+      console.error('Failed to copy code:', error);
     }
   };
 
@@ -482,6 +532,105 @@ document.getElementById('my-button').addEventListener('click', function() {
                   externalPrompt={aiPrompt}
                   onPromptProcessed={handlePromptProcessed}
                 />
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="recommendations" className="flex-1 m-0 p-0 h-0 overflow-hidden">
+              <div className="h-full flex flex-col bg-white dark:bg-gray-900">
+                {/* Header */}
+                <div className="p-4 border-b bg-white dark:bg-gray-800 shadow-sm border-gray-200 dark:border-gray-700 flex-shrink-0">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
+                        <Lightbulb className="w-5 h-5 text-white" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-gray-900 dark:text-gray-100">Code Suggestions</h3>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">AI-powered recommendations for your code</p>
+                      </div>
+                    </div>
+                    <Button
+                      onClick={generateCodeRecommendations}
+                      size="sm"
+                      className="bg-purple-500 hover:bg-purple-600 text-white"
+                    >
+                      <Lightbulb className="w-4 h-4 mr-2" />
+                      Get Suggestions
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Content */}
+                <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                  {recommendations.length === 0 ? (
+                    <div className="h-full flex items-center justify-center">
+                      <div className="text-center">
+                        <Lightbulb className="w-12 h-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
+                        <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">No Suggestions Yet</h3>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                          Get AI-powered code recommendations based on your current work
+                        </p>
+                        <Button
+                          onClick={generateCodeRecommendations}
+                          className="bg-purple-500 hover:bg-purple-600 text-white"
+                        >
+                          <Lightbulb className="w-4 h-4 mr-2" />
+                          Analyze My Code
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    recommendations.map((recommendation) => (
+                      <div 
+                        key={recommendation.id}
+                        className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4"
+                      >
+                        <div className="flex items-start justify-between mb-3">
+                          <h4 className="font-medium text-gray-900 dark:text-gray-100">
+                            {recommendation.title}
+                          </h4>
+                          <div className="flex items-center space-x-2">
+                            <Button
+                              onClick={() => copyToClipboard(recommendation.code)}
+                              size="sm"
+                              variant="ghost"
+                              className="h-8 w-8 p-0"
+                            >
+                              <Copy className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              onClick={() => applyRecommendation(recommendation)}
+                              size="sm"
+                              className="bg-green-500 hover:bg-green-600 text-white h-8"
+                            >
+                              <Plus className="w-4 h-4 mr-1" />
+                              Apply
+                            </Button>
+                          </div>
+                        </div>
+                        
+                        {recommendation.description && (
+                          <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                            {recommendation.description}
+                          </p>
+                        )}
+                        
+                        {recommendation.code && (
+                          <div className="bg-gray-900 dark:bg-gray-950 rounded-md p-3">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-xs text-gray-400 uppercase font-medium">
+                                {recommendation.language}
+                              </span>
+                            </div>
+                            <pre className="text-sm text-gray-100 overflow-x-auto">
+                              <code>{recommendation.code}</code>
+                            </pre>
+                          </div>
+                        )}
+                      </div>
+                    ))
+                  )}
+                </div>
               </div>
             </TabsContent>
             
