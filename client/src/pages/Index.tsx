@@ -22,6 +22,7 @@ const Index = () => {
   const [recommendations, setRecommendations] = useState<any[]>([]);
   const [isLoadingRecommendations, setIsLoadingRecommendations] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [applyingRecommendation, setApplyingRecommendation] = useState<string | null>(null);
   const codeEditorRef = useRef<CodeEditorRef>(null);
 
   const handleAiRequest = (prompt: string) => {
@@ -392,7 +393,8 @@ Focus on fun improvements like colors, animations, interactive elements, or cool
 
   // Apply a code recommendation to the editor with AI-powered refactoring
   const applyRecommendation = async (recommendation: any) => {
-    const { code, language } = recommendation;
+    const { code, language, id } = recommendation;
+    setApplyingRecommendation(id);
     
     // First, merge the code intelligently
     let mergedCode = '';
@@ -498,6 +500,8 @@ Return only the refactored ${targetLanguage} code:`;
           setJsCode(mergedCode);
           break;
       }
+    } finally {
+      setApplyingRecommendation(null);
     }
     
     // Switch to the appropriate tab
@@ -830,11 +834,21 @@ document.getElementById('my-button').addEventListener('click', function() {
                             </Button>
                             <Button
                               onClick={() => applyRecommendation(recommendation)}
+                              disabled={applyingRecommendation === recommendation.id}
                               size="sm"
-                              className="bg-green-500 hover:bg-green-600 text-white h-8"
+                              className="bg-green-500 hover:bg-green-600 text-white h-8 disabled:opacity-50"
                             >
-                              <Plus className="w-4 h-4 mr-1" />
-                              Apply
+                              {applyingRecommendation === recommendation.id ? (
+                                <>
+                                  <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                                  Applying...
+                                </>
+                              ) : (
+                                <>
+                                  <Plus className="w-4 h-4 mr-1" />
+                                  Apply
+                                </>
+                              )}
                             </Button>
                           </div>
                         </div>
