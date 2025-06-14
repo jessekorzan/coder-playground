@@ -296,7 +296,7 @@ Focus on fun improvements like colors, animations, interactive elements, or cool
     }
     
     // Merge selectors
-    for (const [selector, newRules] of newSelectors) {
+    newSelectors.forEach((newRules, selector) => {
       if (existingSelectors.has(selector)) {
         // Merge rules for existing selector
         const existingRules = existingSelectors.get(selector) || '';
@@ -306,40 +306,40 @@ Focus on fun improvements like colors, animations, interactive elements, or cool
         // Add new selector
         existingSelectors.set(selector, newRules);
       }
-    }
+    });
     
     // Rebuild CSS
     let mergedCss = '';
-    for (const [selector, rules] of existingSelectors) {
-      mergedCss += `${selector} {\n  ${rules.split(';').filter(r => r.trim()).join(';\n  ')};\n}\n\n`;
-    }
+    existingSelectors.forEach((rules, selector) => {
+      mergedCss += `${selector} {\n  ${rules.split(';').filter((r: string) => r.trim()).join(';\n  ')};\n}\n\n`;
+    });
     
     return mergedCss.trim();
   };
   
   // Merge CSS rules, preferring new values for conflicting properties
   const mergecssRules = (existingRules: string, newRules: string): string => {
-    const existing = new Map<string, string>();
-    const newProps = new Map<string, string>();
+    const existing: Record<string, string> = {};
+    const newProps: Record<string, string> = {};
     
     // Parse existing rules
     existingRules.split(';').forEach(rule => {
       const [prop, value] = rule.split(':').map(s => s.trim());
-      if (prop && value) existing.set(prop, value);
+      if (prop && value) existing[prop] = value;
     });
     
     // Parse new rules
     newRules.split(';').forEach(rule => {
       const [prop, value] = rule.split(':').map(s => s.trim());
-      if (prop && value) newProps.set(prop, value);
+      if (prop && value) newProps[prop] = value;
     });
     
     // Merge (new props override existing)
-    for (const [prop, value] of newProps) {
-      existing.set(prop, value);
-    }
+    const merged = { ...existing, ...newProps };
     
-    return Array.from(existing.entries()).map(([prop, value]) => `${prop}: ${value}`).join('; ');
+    return Object.entries(merged)
+      .map(([prop, value]) => `${prop}: ${value}`)
+      .join('; ');
   };
   
   // Intelligently merge HTML code
@@ -390,28 +390,127 @@ Focus on fun improvements like colors, animations, interactive elements, or cool
     return existingJs + '\n\n// Applied suggestion\n' + processedNewJs;
   };
 
-  // Apply a code recommendation to the editor with intelligent merging
-  const applyRecommendation = (recommendation: any) => {
+  // Apply a code recommendation to the editor with AI-powered refactoring
+  const applyRecommendation = async (recommendation: any) => {
     const { code, language } = recommendation;
     
-    switch (language.toLowerCase()) {
+    // First, merge the code intelligently
+    let mergedCode = '';
+    let targetLanguage = language.toLowerCase();
+    
+    switch (targetLanguage) {
       case 'html':
-        setHtmlCode(prevCode => mergeHtmlCode(prevCode, code));
-        codeEditorRef.current?.switchToTab('html');
+        mergedCode = mergeHtmlCode(htmlCode, code);
         break;
       case 'css':
-        setCssCode(prevCode => mergeCssCode(prevCode, code));
-        codeEditorRef.current?.switchToTab('css');
+        mergedCode = mergeCssCode(cssCode, code);
         break;
       case 'javascript':
       case 'js':
-        setJsCode(prevCode => mergeJsCode(prevCode, code));
-        codeEditorRef.current?.switchToTab('js');
+        mergedCode = mergeJsCode(jsCode, code);
+        targetLanguage = 'javascript';
         break;
       default:
-        // Default to HTML if language is unclear
-        setHtmlCode(prevCode => mergeHtmlCode(prevCode, code));
+        mergedCode = mergeHtmlCode(htmlCode, code);
+        targetLanguage = 'html';
+    }
+    
+    // Ask AI to refactor the merged code for validity and error-free output
+    try {
+      const refactorPrompt = `Please refactor this ${targetLanguage} code to ensure it's valid, error-free, and follows best practices. Return only the cleaned code without explanations:
+
+\`\`\`${targetLanguage}
+${mergedCode}
+\`\`\`
+
+Requirements:
+- Fix any syntax errors
+- Ensure proper formatting and indentation
+- Remove any duplicates or conflicts
+- Make sure the code is functional and valid
+- Keep the code beginner-friendly for kids learning to code
+
+Return only the refactored ${targetLanguage} code:`;
+
+      const aiResponse = await fetch('https://n8n-service-u37x.onrender.com/webhook/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          chatInput: refactorPrompt
+        }),
+      });
+
+      if (aiResponse.ok) {
+        const data = await aiResponse.json();
+        let refactoredCode = data.data || data.output || data.response || data.message || mergedCode;
+        
+        // Clean up AI response to extract just the code
+        if (typeof refactoredCode === 'string') {
+          // Remove markdown code blocks if present
+          refactoredCode = refactoredCode.replace(/```[\w]*\n/g, '').replace(/```/g, '').trim();
+          
+          // Remove any explanatory text before or after code
+          const codeBlockMatch = refactoredCode.match(new RegExp(`(<!DOCTYPE|<html|<head|<body|\\.|#|function|var|let|const|/\\*).*`, 's'));
+          if (codeBlockMatch) {
+            refactoredCode = codeBlockMatch[0];
+          }
+        }
+        
+        // Apply the refactored code
+        switch (targetLanguage) {
+          case 'html':
+            setHtmlCode(refactoredCode);
+            break;
+          case 'css':
+            setCssCode(refactoredCode);
+            break;
+          case 'javascript':
+            setJsCode(refactoredCode);
+            break;
+        }
+      } else {
+        // Fallback to merged code if AI refactoring fails
+        switch (targetLanguage) {
+          case 'html':
+            setHtmlCode(mergedCode);
+            break;
+          case 'css':
+            setCssCode(mergedCode);
+            break;
+          case 'javascript':
+            setJsCode(mergedCode);
+            break;
+        }
+      }
+    } catch (error) {
+      console.error('Error refactoring code:', error);
+      // Fallback to merged code if AI refactoring fails
+      switch (targetLanguage) {
+        case 'html':
+          setHtmlCode(mergedCode);
+          break;
+        case 'css':
+          setCssCode(mergedCode);
+          break;
+        case 'javascript':
+          setJsCode(mergedCode);
+          break;
+      }
+    }
+    
+    // Switch to the appropriate tab
+    switch (targetLanguage) {
+      case 'html':
         codeEditorRef.current?.switchToTab('html');
+        break;
+      case 'css':
+        codeEditorRef.current?.switchToTab('css');
+        break;
+      case 'javascript':
+        codeEditorRef.current?.switchToTab('js');
+        break;
     }
   };
 
