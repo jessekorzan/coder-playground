@@ -311,11 +311,11 @@ ${mergedCode}
 \`\`\`
 
 Requirements:
+- All documents start with a comment explaining the code's purpose
 - Fix any syntax errors
 - Ensure proper formatting and indentation
-- Remove any duplicates or conflicts
+- Remove redundancies and unnecessary code
 - Make sure the code is functional and valid
-- Keep the code learner-friendly
 
 Return only the refactored ${targetLanguage} code:`;
 
