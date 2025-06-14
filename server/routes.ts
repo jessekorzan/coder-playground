@@ -7,6 +7,19 @@ import { insertPreviewSessionSchema } from "@shared/schema";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  const httpServer = createServer(app);
+
+  // Set up WebSocket server for live reload
+  const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
+
+  wss.on('connection', (ws) => {
+    console.log('WebSocket client connected');
+    
+    ws.on('close', () => {
+      console.log('WebSocket client disconnected');
+    });
+  });
+
   // Generate a unique session ID
   function generateSessionId(): string {
     return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
@@ -123,19 +136,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error serving preview:", error);
       res.status(500).send("Error loading preview");
     }
-  });
-
-  const httpServer = createServer(app);
-
-  // Set up WebSocket server for live reload
-  const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
-
-  wss.on('connection', (ws) => {
-    console.log('WebSocket client connected');
-    
-    ws.on('close', () => {
-      console.log('WebSocket client disconnected');
-    });
   });
 
   return httpServer;

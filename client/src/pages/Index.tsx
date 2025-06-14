@@ -49,6 +49,55 @@ const Index = () => {
     document.body.style.userSelect = 'none';
   };
 
+  // Create or update preview session
+  const updatePreview = async () => {
+    try {
+      const response = await fetch('/api/preview', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          sessionId: sessionId || undefined,
+          htmlCode,
+          cssCode,
+          jsCode,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setSessionId(data.sessionId);
+        setPreviewUrl(data.previewUrl);
+      }
+    } catch (error) {
+      console.error('Error updating preview:', error);
+    }
+  };
+
+  // Auto-update preview when code changes
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (htmlCode || cssCode || jsCode) {
+        updatePreview();
+      }
+    }, 1000); // Debounce updates by 1 second
+
+    return () => clearTimeout(timeoutId);
+  }, [htmlCode, cssCode, jsCode]);
+
+  const openPreview = () => {
+    if (previewUrl) {
+      window.open(previewUrl, '_blank');
+    } else {
+      updatePreview().then(() => {
+        if (previewUrl) {
+          window.open(previewUrl, '_blank');
+        }
+      });
+    }
+  };
+
   // Initialize dark mode from localStorage
   useEffect(() => {
     const savedDarkMode = localStorage.getItem('codecadet-darkmode');
@@ -164,32 +213,6 @@ document.getElementById('my-button').addEventListener('click', function() {
     generateZip(htmlCode, cssCode, jsCode);
   };
 
-  const handlePreview = () => {
-    const previewContent = `<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Code Cadet Preview</title>
-    <style>
-        ${cssCode}
-    </style>
-</head>
-<body>
-    ${htmlCode}
-    <script>
-        ${jsCode}
-    </script>
-</body>
-</html>`;
-
-    const newWindow = window.open();
-    if (newWindow) {
-      newWindow.document.write(previewContent);
-      newWindow.document.close();
-    }
-  };
-
   const toggleDarkMode = () => {
     setIsDarkMode(!isDarkMode);
   };
@@ -214,11 +237,11 @@ document.getElementById('my-button').addEventListener('click', function() {
                 {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
               </Button>
               <Button
-                onClick={handlePreview}
+                onClick={openPreview}
                 className="bg-gray-900 hover:bg-gray-800 text-white text-sm font-medium px-4 py-2 rounded-lg dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100"
               >
                 <Eye className="w-4 h-4 mr-2" />
-                Preview
+                Live Preview
               </Button>
               <Button
                 onClick={handleDownload}
