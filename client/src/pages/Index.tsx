@@ -272,134 +272,52 @@ Focus on fun improvements like colors, animations, interactive elements, or cool
     }
   };
 
-  // Apply a code recommendation to the editor with smart integration
+  // Apply a code recommendation to the editor
   const applyRecommendation = (recommendation: any) => {
     const { code, language } = recommendation;
     
     switch (language.toLowerCase()) {
       case 'html':
         setHtmlCode(prevCode => {
-          return integrateHtmlCode(prevCode, code);
+          if (prevCode.trim()) {
+            return prevCode + '\n\n' + code;
+          }
+          return code;
         });
+        // Switch to HTML tab to show the applied code
         codeEditorRef.current?.switchToTab('html');
         break;
       case 'css':
         setCssCode(prevCode => {
-          return integrateCssCode(prevCode, code);
+          if (prevCode.trim()) {
+            return prevCode + '\n\n' + code;
+          }
+          return code;
         });
+        // Switch to CSS tab to show the applied code
         codeEditorRef.current?.switchToTab('css');
         break;
       case 'javascript':
       case 'js':
         setJsCode(prevCode => {
-          return integrateJsCode(prevCode, code);
+          if (prevCode.trim()) {
+            return prevCode + '\n\n' + code;
+          }
+          return code;
         });
+        // Switch to JS tab to show the applied code
         codeEditorRef.current?.switchToTab('js');
         break;
       default:
+        // Default to HTML if language is unclear
         setHtmlCode(prevCode => {
-          return integrateHtmlCode(prevCode, code);
+          if (prevCode.trim()) {
+            return prevCode + '\n\n' + code;
+          }
+          return code;
         });
         codeEditorRef.current?.switchToTab('html');
     }
-  };
-
-  // Smart HTML integration
-  const integrateHtmlCode = (existing: string, newCode: string): string => {
-    if (!existing.trim()) return newCode;
-    
-    // If the new code is a complete HTML document
-    if (newCode.includes('<!DOCTYPE') || newCode.includes('<html>')) {
-      return newCode;
-    }
-    
-    // If existing code has a body tag, insert new elements inside it
-    if (existing.includes('<body>') && existing.includes('</body>')) {
-      const bodyEndIndex = existing.lastIndexOf('</body>');
-      return existing.slice(0, bodyEndIndex) + '\n\n' + newCode + '\n' + existing.slice(bodyEndIndex);
-    }
-    
-    // If existing code has HTML structure but no body, add one
-    if (existing.includes('<html>') && !existing.includes('<body>')) {
-      const htmlEndIndex = existing.lastIndexOf('</html>');
-      const bodyContent = `\n<body>\n${newCode}\n</body>\n`;
-      return existing.slice(0, htmlEndIndex) + bodyContent + existing.slice(htmlEndIndex);
-    }
-    
-    // For fragments, just append
-    return existing + '\n\n' + newCode;
-  };
-
-  // Smart CSS integration
-  const integrateCssCode = (existing: string, newCode: string): string => {
-    if (!existing.trim()) return newCode;
-    
-    // Check if the new CSS contains selectors that already exist
-    const existingSelectors = extractCssSelectors(existing);
-    const newSelectors = extractCssSelectors(newCode);
-    
-    let result = existing;
-    
-    // For each new selector, either merge or append
-    newSelectors.forEach(({ selector, rules }) => {
-      if (existingSelectors.some(existing => existing.selector === selector)) {
-        // Merge rules into existing selector
-        result = mergeCssRules(result, selector, rules);
-      } else {
-        // Append new selector
-        result += '\n\n' + selector + ' {\n' + rules + '\n}';
-      }
-    });
-    
-    return result;
-  };
-
-  // Smart JavaScript integration
-  const integrateJsCode = (existing: string, newCode: string): string => {
-    if (!existing.trim()) return newCode;
-    
-    // If new code is a function, append it
-    if (newCode.includes('function ') || newCode.includes('const ') || newCode.includes('let ') || newCode.includes('var ')) {
-      return existing + '\n\n' + newCode;
-    }
-    
-    // If new code is event listeners or direct execution
-    if (newCode.includes('addEventListener') || newCode.includes('document.getElementById')) {
-      // Wrap in DOMContentLoaded if not already present
-      if (!existing.includes('DOMContentLoaded') && !newCode.includes('DOMContentLoaded')) {
-        const wrappedCode = `document.addEventListener('DOMContentLoaded', function() {\n${newCode}\n});`;
-        return existing + '\n\n' + wrappedCode;
-      }
-      return existing + '\n\n' + newCode;
-    }
-    
-    return existing + '\n\n' + newCode;
-  };
-
-  // Helper function to extract CSS selectors and rules
-  const extractCssSelectors = (css: string): Array<{selector: string, rules: string}> => {
-    const selectors: Array<{selector: string, rules: string}> = [];
-    const regex = /([^{}]+)\s*\{([^{}]*)\}/g;
-    let match;
-    
-    while ((match = regex.exec(css)) !== null) {
-      selectors.push({
-        selector: match[1].trim(),
-        rules: match[2].trim()
-      });
-    }
-    
-    return selectors;
-  };
-
-  // Helper function to merge CSS rules
-  const mergeCssRules = (css: string, selector: string, newRules: string): string => {
-    const regex = new RegExp(`(${selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*\\{)([^{}]*)(\\})`, 'g');
-    
-    return css.replace(regex, (match, opening, existingRules, closing) => {
-      const combinedRules = existingRules.trim() + '\n  ' + newRules.trim();
-      return opening + '\n  ' + combinedRules + '\n' + closing;
-    });
   };
 
   // Copy code snippet to clipboard
