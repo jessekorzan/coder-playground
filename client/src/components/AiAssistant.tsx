@@ -56,8 +56,6 @@ I'm your AI learning assistant. I'm here to help you learn **HTML**, **CSS**, an
 
 Or type **"suggestions"** to get AI-powered code recommendations based on your current project!
 
----
-
 **What would you like to learn today?**`,
       timestamp: new Date(),
     },
@@ -94,8 +92,8 @@ code snippet
 
 Focus on:
 1. Basic HTML structure
-2. Simple CSS styling
-3. Interactive JavaScript element`;
+2. Colourful and bold CSS styling
+3. Fun visual JavaScript elements`;
       } else {
         analysisPrompt = `Analyze this code and provide 3 specific improvement recommendations:
 
@@ -121,7 +119,7 @@ Brief description
 code snippet
 \`\`\`
 
-Focus on fun improvements like colors, animations, interactive elements, or cool visual effects that kids would enjoy.`;
+Focus on fun improvements like colors, animations, interactive elements, or cool visual effects. IMPORTANT - Respond with ONLY the formatted recommendations. Do NOT add anything else.`;
       }
 
       const aiResponse = await fetch('https://n8n-service-u37x.onrender.com/webhook/chat', {

@@ -36,11 +36,11 @@
 }
 
 .markdown-content code {
-  @apply bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-xs;
+  @apply bg-gray-800 dark:bg-gray-800 px-1 py-0.5 rounded text-xs;
 }
 
 .markdown-content pre {
-  @apply bg-gray-100 dark:bg-gray-800 p-2 rounded text-xs mb-2 max-w-full;
+  @apply bg-gray-800 dark:bg-gray-800 p-2 rounded text-xs mb-2 max-w-full;
   word-wrap: break-word;
   white-space: pre-wrap;
   overflow-x: auto;

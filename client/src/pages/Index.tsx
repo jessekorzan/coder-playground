@@ -303,7 +303,7 @@ Requirements:
 - Ensure proper formatting and indentation
 - Remove any duplicates or conflicts
 - Make sure the code is functional and valid
-- Keep the code beginner-friendly for kids learning to code
+- Keep the code learner-friendly
 
 Return only the refactored ${targetLanguage} code:`;
 
