@@ -4,7 +4,7 @@ import { CodeEditor } from '@/components/CodeEditor';
 import { AiAssistant } from '@/components/AiAssistant';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Eye, Download, Moon, Sun, Bot, Monitor, Lightbulb, Copy, Plus } from 'lucide-react';
+import { Eye, Download, Moon, Sun, Bot, Monitor, Lightbulb, Copy, Plus, Loader2 } from 'lucide-react';
 import { generateZip } from '@/utils/zipUtils';
 
 const Index = () => {
@@ -20,6 +20,7 @@ const Index = () => {
   const [iframeKey, setIframeKey] = useState(0);
   const [showRecommendations, setShowRecommendations] = useState(false);
   const [recommendations, setRecommendations] = useState<any[]>([]);
+  const [isLoadingRecommendations, setIsLoadingRecommendations] = useState(false);
 
   const handleAiRequest = (prompt: string) => {
     setAiPrompt(prompt);
@@ -148,6 +149,7 @@ const Index = () => {
   // Analyze code context and generate AI recommendations
   const generateCodeRecommendations = async () => {
     try {
+      setIsLoadingRecommendations(true);
       setShowRecommendations(true);
       
       // Analyze current code context
@@ -261,6 +263,8 @@ Focus on fun improvements like colors, animations, interactive elements, or cool
       }
     } catch (error) {
       console.error('Error generating recommendations:', error);
+    } finally {
+      setIsLoadingRecommendations(false);
     }
   };
 
@@ -551,11 +555,21 @@ document.getElementById('my-button').addEventListener('click', function() {
                     </div>
                     <Button
                       onClick={generateCodeRecommendations}
+                      disabled={isLoadingRecommendations}
                       size="sm"
-                      className="bg-purple-500 hover:bg-purple-600 text-white"
+                      className="bg-purple-500 hover:bg-purple-600 text-white disabled:opacity-50"
                     >
-                      <Lightbulb className="w-4 h-4 mr-2" />
-                      Get Suggestions
+                      {isLoadingRecommendations ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Analyzing...
+                        </>
+                      ) : (
+                        <>
+                          <Lightbulb className="w-4 h-4 mr-2" />
+                          Get Suggestions
+                        </>
+                      )}
                     </Button>
                   </div>
                 </div>
@@ -572,10 +586,20 @@ document.getElementById('my-button').addEventListener('click', function() {
                         </p>
                         <Button
                           onClick={generateCodeRecommendations}
-                          className="bg-purple-500 hover:bg-purple-600 text-white"
+                          disabled={isLoadingRecommendations}
+                          className="bg-purple-500 hover:bg-purple-600 text-white disabled:opacity-50"
                         >
-                          <Lightbulb className="w-4 h-4 mr-2" />
-                          Analyze My Code
+                          {isLoadingRecommendations ? (
+                            <>
+                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                              Analyzing...
+                            </>
+                          ) : (
+                            <>
+                              <Lightbulb className="w-4 h-4 mr-2" />
+                              Analyze My Code
+                            </>
+                          )}
                         </Button>
                       </div>
                     </div>

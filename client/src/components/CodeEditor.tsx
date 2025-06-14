@@ -126,9 +126,9 @@ export const CodeEditor = ({
   };
 
   return (
-    <div className="h-full bg-white dark:bg-gray-900">
+    <div className="h-full bg-slate-50 dark:bg-gray-900">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
-        <TabsList className="grid w-full grid-cols-3 rounded-none border-b bg-gray-50 dark:bg-gray-800 border-gray-100 dark:border-gray-700 h-12">
+        <TabsList className="grid w-full grid-cols-3 rounded-none border-b bg-slate-100 dark:bg-gray-800 border-slate-200 dark:border-gray-700 h-12">
           <TabsTrigger 
             value="html" 
             className="flex items-center space-x-2 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-900 data-[state=active]:text-gray-900 dark:data-[state=active]:text-white text-gray-600 dark:text-gray-400 font-medium text-sm data-[state=active]:border-b-2 data-[state=active]:border-gray-900 dark:data-[state=active]:border-white rounded-none"
