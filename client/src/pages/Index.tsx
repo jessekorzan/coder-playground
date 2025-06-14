@@ -21,6 +21,7 @@ const Index = () => {
   const [showRecommendations, setShowRecommendations] = useState(false);
   const [recommendations, setRecommendations] = useState<any[]>([]);
   const [isLoadingRecommendations, setIsLoadingRecommendations] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
 
   const handleAiRequest = (prompt: string) => {
     setAiPrompt(prompt);
@@ -33,6 +34,7 @@ const Index = () => {
 
   const handleMouseDown = (e: React.MouseEvent) => {
     e.preventDefault();
+    setIsDragging(true);
     
     const handleMouseMove = (e: MouseEvent) => {
       const containerWidth = window.innerWidth;
@@ -48,6 +50,7 @@ const Index = () => {
       document.removeEventListener('mouseup', handleMouseUp);
       document.body.style.cursor = '';
       document.body.style.userSelect = '';
+      setIsDragging(false);
     };
 
     document.addEventListener('mousemove', handleMouseMove);
@@ -280,6 +283,11 @@ Focus on fun improvements like colors, animations, interactive elements, or cool
           }
           return code;
         });
+        // Switch to HTML tab and then to editor panel to show the applied code
+        setTimeout(() => {
+          const htmlTab = document.querySelector('[data-value="html"]') as HTMLElement;
+          if (htmlTab) htmlTab.click();
+        }, 100);
         break;
       case 'css':
         setCssCode(prevCode => {
@@ -288,6 +296,11 @@ Focus on fun improvements like colors, animations, interactive elements, or cool
           }
           return code;
         });
+        // Switch to CSS tab and then to editor panel to show the applied code
+        setTimeout(() => {
+          const cssTab = document.querySelector('[data-value="css"]') as HTMLElement;
+          if (cssTab) cssTab.click();
+        }, 100);
         break;
       case 'javascript':
       case 'js':
@@ -297,6 +310,11 @@ Focus on fun improvements like colors, animations, interactive elements, or cool
           }
           return code;
         });
+        // Switch to JS tab and then to editor panel to show the applied code
+        setTimeout(() => {
+          const jsTab = document.querySelector('[data-value="js"]') as HTMLElement;
+          if (jsTab) jsTab.click();
+        }, 100);
         break;
       default:
         // Default to HTML if language is unclear
@@ -306,6 +324,10 @@ Focus on fun improvements like colors, animations, interactive elements, or cool
           }
           return code;
         });
+        setTimeout(() => {
+          const htmlTab = document.querySelector('[data-value="html"]') as HTMLElement;
+          if (htmlTab) htmlTab.click();
+        }, 100);
     }
   };
 
@@ -659,14 +681,20 @@ document.getElementById('my-button').addEventListener('click', function() {
             </TabsContent>
             
             <TabsContent value="preview" className="flex-1 m-0 p-0 h-0 overflow-hidden">
-              <div className="h-full bg-white dark:bg-gray-900">
+              <div className="h-full bg-white dark:bg-gray-900 relative">
                 {previewUrl ? (
-                  <iframe 
-                    key={iframeKey}
-                    src={previewUrl}
-                    className="w-full h-full border-0"
-                    title="Live Preview"
-                  />
+                  <>
+                    <iframe 
+                      key={iframeKey}
+                      src={previewUrl}
+                      className="w-full h-full border-0"
+                      title="Live Preview"
+                    />
+                    {/* Overlay during drag to prevent iframe from capturing mouse events */}
+                    {isDragging && (
+                      <div className="absolute inset-0 bg-transparent cursor-col-resize z-50" />
+                    )}
+                  </>
                 ) : (
                   <div className="h-full flex items-center justify-center bg-gray-50 dark:bg-gray-800 overflow-y-auto">
                     <div className="text-center">
