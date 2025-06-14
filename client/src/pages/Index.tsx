@@ -272,50 +272,145 @@ Focus on fun improvements like colors, animations, interactive elements, or cool
     }
   };
 
-  // Apply a code recommendation to the editor
+  // Intelligently merge CSS code
+  const mergeCssCode = (existingCss: string, newCss: string): string => {
+    if (!existingCss.trim()) return newCss;
+    
+    // Parse existing CSS to extract selectors and rules
+    const existingSelectors = new Map<string, string>();
+    const selectorRegex = /([^{]+)\s*\{([^}]*)\}/g;
+    let match;
+    
+    while ((match = selectorRegex.exec(existingCss)) !== null) {
+      const selector = match[1].trim();
+      const rules = match[2].trim();
+      existingSelectors.set(selector, rules);
+    }
+    
+    // Parse new CSS
+    const newSelectors = new Map<string, string>();
+    while ((match = selectorRegex.exec(newCss)) !== null) {
+      const selector = match[1].trim();
+      const rules = match[2].trim();
+      newSelectors.set(selector, rules);
+    }
+    
+    // Merge selectors
+    for (const [selector, newRules] of newSelectors) {
+      if (existingSelectors.has(selector)) {
+        // Merge rules for existing selector
+        const existingRules = existingSelectors.get(selector) || '';
+        const mergedRules = mergecssRules(existingRules, newRules);
+        existingSelectors.set(selector, mergedRules);
+      } else {
+        // Add new selector
+        existingSelectors.set(selector, newRules);
+      }
+    }
+    
+    // Rebuild CSS
+    let mergedCss = '';
+    for (const [selector, rules] of existingSelectors) {
+      mergedCss += `${selector} {\n  ${rules.split(';').filter(r => r.trim()).join(';\n  ')};\n}\n\n`;
+    }
+    
+    return mergedCss.trim();
+  };
+  
+  // Merge CSS rules, preferring new values for conflicting properties
+  const mergecssRules = (existingRules: string, newRules: string): string => {
+    const existing = new Map<string, string>();
+    const newProps = new Map<string, string>();
+    
+    // Parse existing rules
+    existingRules.split(';').forEach(rule => {
+      const [prop, value] = rule.split(':').map(s => s.trim());
+      if (prop && value) existing.set(prop, value);
+    });
+    
+    // Parse new rules
+    newRules.split(';').forEach(rule => {
+      const [prop, value] = rule.split(':').map(s => s.trim());
+      if (prop && value) newProps.set(prop, value);
+    });
+    
+    // Merge (new props override existing)
+    for (const [prop, value] of newProps) {
+      existing.set(prop, value);
+    }
+    
+    return Array.from(existing.entries()).map(([prop, value]) => `${prop}: ${value}`).join('; ');
+  };
+  
+  // Intelligently merge HTML code
+  const mergeHtmlCode = (existingHtml: string, newHtml: string): string => {
+    if (!existingHtml.trim()) return newHtml;
+    
+    // If new HTML contains complete document structure, replace
+    if (newHtml.includes('<html>') || newHtml.includes('<!DOCTYPE')) {
+      return newHtml;
+    }
+    
+    // If existing HTML has body tag, insert new content inside body
+    const bodyMatch = existingHtml.match(/<body[^>]*>([\s\S]*)<\/body>/i);
+    if (bodyMatch) {
+      const bodyContent = bodyMatch[1].trim();
+      const newBodyContent = bodyContent + '\n\n' + newHtml;
+      return existingHtml.replace(/<body[^>]*>[\s\S]*<\/body>/i, `<body>\n${newBodyContent}\n</body>`);
+    }
+    
+    // Otherwise append to existing content
+    return existingHtml + '\n\n' + newHtml;
+  };
+  
+  // Intelligently merge JavaScript code
+  const mergeJsCode = (existingJs: string, newJs: string): string => {
+    if (!existingJs.trim()) return newJs;
+    
+    // Check for function conflicts and variable redeclarations
+    const functionRegex = /function\s+(\w+)\s*\(/g;
+    const existingFunctions = new Set<string>();
+    let match;
+    
+    while ((match = functionRegex.exec(existingJs)) !== null) {
+      existingFunctions.add(match[1]);
+    }
+    
+    // Check if new code conflicts with existing functions
+    let processedNewJs = newJs;
+    while ((match = functionRegex.exec(newJs)) !== null) {
+      const funcName = match[1];
+      if (existingFunctions.has(funcName)) {
+        // Rename conflicting function
+        const newName = `${funcName}_${Date.now()}`;
+        processedNewJs = processedNewJs.replace(new RegExp(`\\b${funcName}\\b`, 'g'), newName);
+      }
+    }
+    
+    return existingJs + '\n\n// Applied suggestion\n' + processedNewJs;
+  };
+
+  // Apply a code recommendation to the editor with intelligent merging
   const applyRecommendation = (recommendation: any) => {
     const { code, language } = recommendation;
     
     switch (language.toLowerCase()) {
       case 'html':
-        setHtmlCode(prevCode => {
-          if (prevCode.trim()) {
-            return prevCode + '\n\n' + code;
-          }
-          return code;
-        });
-        // Switch to HTML tab to show the applied code
+        setHtmlCode(prevCode => mergeHtmlCode(prevCode, code));
         codeEditorRef.current?.switchToTab('html');
         break;
       case 'css':
-        setCssCode(prevCode => {
-          if (prevCode.trim()) {
-            return prevCode + '\n\n' + code;
-          }
-          return code;
-        });
-        // Switch to CSS tab to show the applied code
+        setCssCode(prevCode => mergeCssCode(prevCode, code));
         codeEditorRef.current?.switchToTab('css');
         break;
       case 'javascript':
       case 'js':
-        setJsCode(prevCode => {
-          if (prevCode.trim()) {
-            return prevCode + '\n\n' + code;
-          }
-          return code;
-        });
-        // Switch to JS tab to show the applied code
+        setJsCode(prevCode => mergeJsCode(prevCode, code));
         codeEditorRef.current?.switchToTab('js');
         break;
       default:
         // Default to HTML if language is unclear
-        setHtmlCode(prevCode => {
-          if (prevCode.trim()) {
-            return prevCode + '\n\n' + code;
-          }
-          return code;
-        });
+        setHtmlCode(prevCode => mergeHtmlCode(prevCode, code));
         codeEditorRef.current?.switchToTab('html');
     }
   };
