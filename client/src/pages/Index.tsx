@@ -3,7 +3,8 @@ import { useState, useEffect } from 'react';
 import { CodeEditor } from '@/components/CodeEditor';
 import { AiAssistant } from '@/components/AiAssistant';
 import { Button } from '@/components/ui/button';
-import { Eye, Download, Moon, Sun } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Eye, Download, Moon, Sun, Bot, Monitor } from 'lucide-react';
 import { generateZip } from '@/utils/zipUtils';
 
 const Index = () => {
@@ -15,6 +16,8 @@ const Index = () => {
   const [leftPanelWidth, setLeftPanelWidth] = useState(70); // Percentage
   const [previewUrl, setPreviewUrl] = useState<string>('');
   const [sessionId, setSessionId] = useState<string>('');
+  const [activeAssistantTab, setActiveAssistantTab] = useState('ai');
+  const [iframeKey, setIframeKey] = useState(0);
 
   const handleAiRequest = (prompt: string) => {
     setAiPrompt(prompt);
@@ -79,12 +82,48 @@ const Index = () => {
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       if (htmlCode || cssCode || jsCode) {
-        updatePreview();
+        updatePreview().then(() => {
+          // Force iframe reload to get the latest content
+          setIframeKey(prev => prev + 1);
+        });
       }
     }, 1000); // Debounce updates by 1 second
 
     return () => clearTimeout(timeoutId);
   }, [htmlCode, cssCode, jsCode]);
+
+  // Set up WebSocket connection for live reload in embedded preview
+  useEffect(() => {
+    if (!sessionId) return;
+
+    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+    const wsUrl = `${protocol}//${window.location.host}/ws`;
+    const socket = new WebSocket(wsUrl);
+
+    socket.onopen = () => {
+      console.log('WebSocket connected for embedded preview');
+    };
+
+    socket.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.type === 'code-update' && data.sessionId === sessionId) {
+          // Reload the iframe when we receive a code update
+          setIframeKey(prev => prev + 1);
+        }
+      } catch (error) {
+        console.error('Error parsing WebSocket message:', error);
+      }
+    };
+
+    socket.onclose = () => {
+      console.log('WebSocket disconnected');
+    };
+
+    return () => {
+      socket.close();
+    };
+  }, [sessionId]);
 
   const openPreview = () => {
     if (previewUrl) {
@@ -96,6 +135,11 @@ const Index = () => {
         }
       });
     }
+  };
+
+  const generatePreviewAndSwitchTab = async () => {
+    await updatePreview();
+    setActiveAssistantTab('preview');
   };
 
   // Initialize dark mode from localStorage
@@ -280,15 +324,66 @@ document.getElementById('my-button').addEventListener('click', function() {
           onMouseDown={handleMouseDown}
         />
 
-        {/* Right Panel - AI Assistant */}
+        {/* Right Panel - Assistant with Tabs */}
         <div 
-          className="bg-gray-50 dark:bg-gray-800"
+          className="bg-gray-50 dark:bg-gray-800 flex flex-col"
           style={{ width: `${100 - leftPanelWidth}%` }}
         >
-          <AiAssistant 
-            externalPrompt={aiPrompt}
-            onPromptProcessed={handlePromptProcessed}
-          />
+          <Tabs value={activeAssistantTab} onValueChange={setActiveAssistantTab} className="h-full flex flex-col">
+            <TabsList className="grid w-full grid-cols-2 rounded-none border-b bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 h-12">
+              <TabsTrigger 
+                value="ai" 
+                className="flex items-center space-x-2 data-[state=active]:bg-gray-50 dark:data-[state=active]:bg-gray-700 data-[state=active]:text-gray-900 dark:data-[state=active]:text-white text-gray-600 dark:text-gray-400 font-medium text-sm rounded-none"
+              >
+                <Bot className="w-4 h-4" />
+                <span>AI Assistant</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="preview" 
+                className="flex items-center space-x-2 data-[state=active]:bg-gray-50 dark:data-[state=active]:bg-gray-700 data-[state=active]:text-gray-900 dark:data-[state=active]:text-white text-gray-600 dark:text-gray-400 font-medium text-sm rounded-none"
+              >
+                <Monitor className="w-4 h-4" />
+                <span>Live Preview</span>
+              </TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="ai" className="flex-1 m-0 p-0">
+              <AiAssistant 
+                externalPrompt={aiPrompt}
+                onPromptProcessed={handlePromptProcessed}
+              />
+            </TabsContent>
+            
+            <TabsContent value="preview" className="flex-1 m-0 p-0">
+              <div className="h-full bg-white dark:bg-gray-900">
+                {previewUrl ? (
+                  <iframe 
+                    key={iframeKey}
+                    src={previewUrl}
+                    className="w-full h-full border-0"
+                    title="Live Preview"
+                  />
+                ) : (
+                  <div className="h-full flex items-center justify-center bg-gray-50 dark:bg-gray-800">
+                    <div className="text-center">
+                      <Monitor className="w-12 h-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
+                      <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">No Preview Available</h3>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                        Start coding to see your live preview here
+                      </p>
+                      <Button
+                        onClick={generatePreviewAndSwitchTab}
+                        className="bg-indigo-500 hover:bg-indigo-600 text-white"
+                      >
+                        <Eye className="w-4 h-4 mr-2" />
+                        Generate Preview
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
     </div>
