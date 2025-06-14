@@ -4,7 +4,7 @@ import { CodeEditor } from '@/components/CodeEditor';
 import { AiAssistant } from '@/components/AiAssistant';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Eye, Download, Moon, Sun, Bot, Monitor } from 'lucide-react';
+import { Eye, Download, Moon, Sun, Bot, Monitor, Lightbulb, Copy, Plus } from 'lucide-react';
 import { generateZip } from '@/utils/zipUtils';
 
 const Index = () => {
@@ -18,9 +18,12 @@ const Index = () => {
   const [sessionId, setSessionId] = useState<string>('');
   const [activeAssistantTab, setActiveAssistantTab] = useState('ai');
   const [iframeKey, setIframeKey] = useState(0);
+  const [showRecommendations, setShowRecommendations] = useState(false);
+  const [recommendations, setRecommendations] = useState<any[]>([]);
 
   const handleAiRequest = (prompt: string) => {
     setAiPrompt(prompt);
+    setActiveAssistantTab('ai'); // Switch to AI Assistant tab when context menu is used
   };
 
   const handlePromptProcessed = () => {
@@ -140,6 +143,125 @@ const Index = () => {
   const generatePreviewAndSwitchTab = async () => {
     await updatePreview();
     setActiveAssistantTab('preview');
+  };
+
+  // Analyze code context and generate AI recommendations
+  const generateCodeRecommendations = async () => {
+    try {
+      setShowRecommendations(true);
+      
+      // Analyze current code context
+      const codeContext = {
+        html: htmlCode.trim(),
+        css: cssCode.trim(),
+        js: jsCode.trim(),
+        hasContent: Boolean(htmlCode.trim() || cssCode.trim() || jsCode.trim())
+      };
+
+      let analysisPrompt = '';
+      
+      if (!codeContext.hasContent) {
+        analysisPrompt = `I'm starting a new web project. Give me 3 practical code snippet recommendations to help me get started. Format each recommendation as:
+
+**[Title]**
+Brief description
+\`\`\`[language]
+code snippet
+\`\`\`
+
+Focus on:
+1. Basic HTML structure
+2. Simple CSS styling
+3. Interactive JavaScript element`;
+      } else {
+        analysisPrompt = `Analyze this code and provide 3 specific improvement recommendations:
+
+HTML:
+\`\`\`html
+${codeContext.html || '(empty)'}
+\`\`\`
+
+CSS:
+\`\`\`css
+${codeContext.css || '(empty)'}
+\`\`\`
+
+JavaScript:
+\`\`\`javascript
+${codeContext.js || '(empty)'}
+\`\`\`
+
+Format each recommendation as:
+**[Title]**
+Brief description
+\`\`\`[language]
+code snippet
+\`\`\`
+
+Focus on practical improvements like accessibility, performance, modern CSS features, or interactive elements.`;
+      }
+
+      const aiResponse = await fetch('https://n8n-service-u37x.onrender.com/webhook/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          chatInput: analysisPrompt
+        }),
+      });
+
+      if (aiResponse.ok) {
+        const data = await aiResponse.json();
+        let aiContent = data.data || data.output || data.response || data.message || '';
+        
+        // Clean up HTML tags if present
+        if (typeof aiContent === 'string' && aiContent.includes('<')) {
+          aiContent = aiContent
+            .replace(/<h3>/g, '\n**')
+            .replace(/<\/h3>/g, '**\n')
+            .replace(/<p>/g, '\n')
+            .replace(/<\/p>/g, '\n')
+            .replace(/<main>/g, '')
+            .replace(/<\/main>/g, '')
+            .replace(/<footer>/g, '\n\n---\n')
+            .replace(/<\/footer>/g, '\n')
+            .replace(/<section>/g, '\n\nSuggestions:')
+            .replace(/<\/section>/g, '')
+            .replace(/<a[^>]*onclick="[^"]*"[^>]*>/g, '• ')
+            .replace(/<\/a>/g, '')
+            .replace(/\n\s*\n\s*\n/g, '\n\n')
+            .trim();
+        }
+
+        // Parse recommendations from AI response
+        const recommendationBlocks = aiContent.split('**').filter((block: string) => block.trim());
+        const parsedRecommendations = [];
+        
+        for (let i = 0; i < recommendationBlocks.length; i += 2) {
+          if (recommendationBlocks[i] && recommendationBlocks[i + 1]) {
+            const title = recommendationBlocks[i].trim();
+            const content = recommendationBlocks[i + 1].trim();
+            
+            // Extract code snippet if present
+            const codeMatch = content.match(/```(\w+)?\s*([\s\S]*?)```/);
+            const description = content.replace(/```[\s\S]*?```/g, '').trim();
+            
+            parsedRecommendations.push({
+              id: Date.now() + i,
+              title,
+              description,
+              code: codeMatch ? codeMatch[2].trim() : '',
+              language: codeMatch ? codeMatch[1] || 'html' : 'html'
+            });
+          }
+        }
+
+        setRecommendations(parsedRecommendations);
+      }
+    } catch (error) {
+      console.error('Error generating recommendations:', error);
+    }
   };
 
   // Initialize dark mode from localStorage
@@ -330,31 +452,40 @@ document.getElementById('my-button').addEventListener('click', function() {
           style={{ width: `${100 - leftPanelWidth}%` }}
         >
           <Tabs value={activeAssistantTab} onValueChange={setActiveAssistantTab} className="h-full flex flex-col">
-            <TabsList className="grid w-full grid-cols-2 rounded-none border-b bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 h-12">
+            <TabsList className="grid w-full grid-cols-3 rounded-none border-b bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 h-12 flex-shrink-0">
               <TabsTrigger 
                 value="ai" 
                 className="flex items-center space-x-2 data-[state=active]:bg-gray-50 dark:data-[state=active]:bg-gray-700 data-[state=active]:text-gray-900 dark:data-[state=active]:text-white text-gray-600 dark:text-gray-400 font-medium text-sm rounded-none"
               >
                 <Bot className="w-4 h-4" />
-                <span>AI Assistant</span>
+                <span>AI Chat</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="recommendations" 
+                className="flex items-center space-x-2 data-[state=active]:bg-gray-50 dark:data-[state=active]:bg-gray-700 data-[state=active]:text-gray-900 dark:data-[state=active]:text-white text-gray-600 dark:text-gray-400 font-medium text-sm rounded-none"
+              >
+                <Lightbulb className="w-4 h-4" />
+                <span>Suggestions</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="preview" 
                 className="flex items-center space-x-2 data-[state=active]:bg-gray-50 dark:data-[state=active]:bg-gray-700 data-[state=active]:text-gray-900 dark:data-[state=active]:text-white text-gray-600 dark:text-gray-400 font-medium text-sm rounded-none"
               >
                 <Monitor className="w-4 h-4" />
-                <span>Live Preview</span>
+                <span>Preview</span>
               </TabsTrigger>
             </TabsList>
             
-            <TabsContent value="ai" className="flex-1 m-0 p-0">
-              <AiAssistant 
-                externalPrompt={aiPrompt}
-                onPromptProcessed={handlePromptProcessed}
-              />
+            <TabsContent value="ai" className="flex-1 m-0 p-0 h-0 overflow-hidden">
+              <div className="h-full">
+                <AiAssistant 
+                  externalPrompt={aiPrompt}
+                  onPromptProcessed={handlePromptProcessed}
+                />
+              </div>
             </TabsContent>
             
-            <TabsContent value="preview" className="flex-1 m-0 p-0">
+            <TabsContent value="preview" className="flex-1 m-0 p-0 h-0 overflow-hidden">
               <div className="h-full bg-white dark:bg-gray-900">
                 {previewUrl ? (
                   <iframe 
@@ -364,7 +495,7 @@ document.getElementById('my-button').addEventListener('click', function() {
                     title="Live Preview"
                   />
                 ) : (
-                  <div className="h-full flex items-center justify-center bg-gray-50 dark:bg-gray-800">
+                  <div className="h-full flex items-center justify-center bg-gray-50 dark:bg-gray-800 overflow-y-auto">
                     <div className="text-center">
                       <Monitor className="w-12 h-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
                       <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">No Preview Available</h3>

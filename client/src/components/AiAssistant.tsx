@@ -49,7 +49,7 @@ I'm your AI learning assistant. I'm here to help you learn **HTML**, **CSS**, an
     setIsLoading(true);
 
     try {
-      const response = await fetch('https://n8n-service-u37x.onrender.com/webhook/chat', {
+      const response = await fetch('https://n8n-service-u37x.onrender.com/webhook/agent-html', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
