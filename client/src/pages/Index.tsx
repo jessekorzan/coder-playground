@@ -4,7 +4,7 @@ import { CodeEditor, CodeEditorRef } from '@/components/CodeEditor';
 import { AiAssistant } from '@/components/AiAssistant';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Eye, Download, Moon, Sun, Bot, Monitor, Lightbulb, Copy, Plus, Loader2 } from 'lucide-react';
+import { Eye, Download, Moon, Sun, Bot, Monitor } from 'lucide-react';
 import { generateZip } from '@/utils/zipUtils';
 
 const Index = () => {
@@ -18,11 +18,7 @@ const Index = () => {
   const [sessionId, setSessionId] = useState<string>('');
   const [activeAssistantTab, setActiveAssistantTab] = useState('ai');
   const [iframeKey, setIframeKey] = useState(0);
-  const [showRecommendations, setShowRecommendations] = useState(false);
-  const [recommendations, setRecommendations] = useState<any[]>([]);
-  const [isLoadingRecommendations, setIsLoadingRecommendations] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
-  const [applyingRecommendation, setApplyingRecommendation] = useState<string | null>(null);
   const codeEditorRef = useRef<CodeEditorRef>(null);
 
   const handleAiRequest = (prompt: string) => {
@@ -151,127 +147,7 @@ const Index = () => {
     setActiveAssistantTab('preview');
   };
 
-  // Analyze code context and generate AI recommendations
-  const generateCodeRecommendations = async () => {
-    try {
-      setIsLoadingRecommendations(true);
-      setShowRecommendations(true);
-      
-      // Analyze current code context
-      const codeContext = {
-        html: htmlCode.trim(),
-        css: cssCode.trim(),
-        js: jsCode.trim(),
-        hasContent: Boolean(htmlCode.trim() || cssCode.trim() || jsCode.trim())
-      };
 
-      let analysisPrompt = '';
-      
-      if (!codeContext.hasContent) {
-        analysisPrompt = `I'm starting a new web project. Give me 3 fun code snippet recommendations to help me get started. Important - Respond to me with *ONLY* the recommendations in the following schema:
-
-**[Title]**
-Brief description
-\`\`\`[language]
-code snippet
-\`\`\`
-
-Focus on:
-1. Basic HTML structure
-2. Simple CSS styling
-3. Interactive JavaScript element`;
-      } else {
-        analysisPrompt = `Analyze this code and provide 3 specific improvement recommendations:
-
-HTML:
-\`\`\`html
-${codeContext.html || '(empty)'}
-\`\`\`
-
-CSS:
-\`\`\`css
-${codeContext.css || '(empty)'}
-\`\`\`
-
-JavaScript:
-\`\`\`javascript
-${codeContext.js || '(empty)'}
-\`\`\`
-
-Format each recommendation as:
-**[Title]**
-Brief description
-\`\`\`[language]
-code snippet
-\`\`\`
-
-Focus on quirky ideas for interactive elements, colourful effects, and visually impressive enhancements.`;
-      }
-
-      const aiResponse = await fetch('https://n8n-service-u37x.onrender.com/webhook/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          chatInput: analysisPrompt
-        }),
-      });
-
-      if (aiResponse.ok) {
-        const data = await aiResponse.json();
-        let aiContent = data.data || data.output || data.response || data.message || '';
-        
-        // Clean up HTML tags if present
-        if (typeof aiContent === 'string' && aiContent.includes('<')) {
-          aiContent = aiContent
-            .replace(/<h3>/g, '\n**')
-            .replace(/<\/h3>/g, '**\n')
-            .replace(/<p>/g, '\n')
-            .replace(/<\/p>/g, '\n')
-            .replace(/<main>/g, '')
-            .replace(/<\/main>/g, '')
-            .replace(/<footer>/g, '\n\n---\n')
-            .replace(/<\/footer>/g, '\n')
-            .replace(/<section>/g, '\n\nSuggestions:')
-            .replace(/<\/section>/g, '')
-            .replace(/<a[^>]*onclick="[^"]*"[^>]*>/g, '• ')
-            .replace(/<\/a>/g, '')
-            .replace(/\n\s*\n\s*\n/g, '\n\n')
-            .trim();
-        }
-
-        // Parse recommendations from AI response
-        const recommendationBlocks = aiContent.split('**').filter((block: string) => block.trim());
-        const parsedRecommendations = [];
-        
-        for (let i = 0; i < recommendationBlocks.length; i += 2) {
-          if (recommendationBlocks[i] && recommendationBlocks[i + 1]) {
-            const title = recommendationBlocks[i].trim();
-            const content = recommendationBlocks[i + 1].trim();
-            
-            // Extract code snippet if present
-            const codeMatch = content.match(/```(\w+)?\s*([\s\S]*?)```/);
-            const description = content.replace(/```[\s\S]*?```/g, '').trim();
-            
-            parsedRecommendations.push({
-              id: Date.now() + i,
-              title,
-              description,
-              code: codeMatch ? codeMatch[2].trim() : '',
-              language: codeMatch ? codeMatch[1] || 'html' : 'html'
-            });
-          }
-        }
-
-        setRecommendations(parsedRecommendations);
-      }
-    } catch (error) {
-      console.error('Error generating recommendations:', error);
-    } finally {
-      setIsLoadingRecommendations(false);
-    }
-  };
 
   // Intelligently merge CSS code
   const mergeCssCode = (existingCss: string, newCss: string): string => {
@@ -740,135 +616,7 @@ document.getElementById('my-button').addEventListener('click', function() {
                 />
               </div>
             </TabsContent>
-            
-            <TabsContent value="recommendations" className="flex-1 m-0 p-0 h-0 overflow-hidden">
-              <div className="h-full flex flex-col bg-white dark:bg-gray-900">
-                {/* Header */}
-                <div className="p-4 border-b bg-white dark:bg-gray-800 shadow-sm border-gray-200 dark:border-gray-700 flex-shrink-0">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
-                        <Lightbulb className="w-5 h-5 text-white" />
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-gray-900 dark:text-gray-100">Code Suggestions</h3>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">AI-powered recommendations for your code</p>
-                      </div>
-                    </div>
-                    <Button
-                      onClick={generateCodeRecommendations}
-                      disabled={isLoadingRecommendations}
-                      size="sm"
-                      className="bg-purple-500 hover:bg-purple-600 text-white disabled:opacity-50"
-                    >
-                      {isLoadingRecommendations ? (
-                        <>
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          Analyzing...
-                        </>
-                      ) : (
-                        <>
-                          <Lightbulb className="w-4 h-4 mr-2" />
-                          Get Suggestions
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                </div>
 
-                {/* Content */}
-                <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                  {recommendations.length === 0 ? (
-                    <div className="h-full flex items-center justify-center">
-                      <div className="text-center">
-                        <Lightbulb className="w-12 h-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
-                        <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">No Suggestions Yet</h3>
-                        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-                          Get AI-powered code recommendations based on your current work
-                        </p>
-                        <Button
-                          onClick={generateCodeRecommendations}
-                          disabled={isLoadingRecommendations}
-                          className="bg-purple-500 hover:bg-purple-600 text-white disabled:opacity-50"
-                        >
-                          {isLoadingRecommendations ? (
-                            <>
-                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                              Analyzing...
-                            </>
-                          ) : (
-                            <>
-                              <Lightbulb className="w-4 h-4 mr-2" />
-                              Analyze My Code
-                            </>
-                          )}
-                        </Button>
-                      </div>
-                    </div>
-                  ) : (
-                    recommendations.map((recommendation) => (
-                      <div 
-                        key={recommendation.id}
-                        className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4"
-                      >
-                        <div className="flex items-start justify-between mb-3">
-                          <h4 className="font-medium text-gray-900 dark:text-gray-100">
-                            {recommendation.title}
-                          </h4>
-                          <div className="flex items-center space-x-2">
-                            <Button
-                              onClick={() => copyToClipboard(recommendation.code)}
-                              size="sm"
-                              variant="ghost"
-                              className="h-8 w-8 p-0"
-                            >
-                              <Copy className="w-4 h-4" />
-                            </Button>
-                            <Button
-                              onClick={() => applyRecommendation(recommendation)}
-                              disabled={applyingRecommendation === recommendation.id}
-                              size="sm"
-                              className="bg-green-500 hover:bg-green-600 text-white h-8 disabled:opacity-50"
-                            >
-                              {applyingRecommendation === recommendation.id ? (
-                                <>
-                                  <Loader2 className="w-4 h-4 mr-1 animate-spin" />
-                                  Applying...
-                                </>
-                              ) : (
-                                <>
-                                  <Plus className="w-4 h-4 mr-1" />
-                                  Apply
-                                </>
-                              )}
-                            </Button>
-                          </div>
-                        </div>
-                        
-                        {recommendation.description && (
-                          <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
-                            {recommendation.description}
-                          </p>
-                        )}
-                        
-                        {recommendation.code && (
-                          <div className="bg-gray-900 dark:bg-gray-950 rounded-md p-3">
-                            <div className="flex items-center justify-between mb-2">
-                              <span className="text-xs text-gray-400 uppercase font-medium">
-                                {recommendation.language}
-                              </span>
-                            </div>
-                            <pre className="text-sm text-gray-100 overflow-x-auto">
-                              <code>{recommendation.code}</code>
-                            </pre>
-                          </div>
-                        )}
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-            </TabsContent>
             
             <TabsContent value="preview" className="flex-1 m-0 p-0 h-0 overflow-hidden">
               <div className="h-full bg-white dark:bg-gray-900 relative">
