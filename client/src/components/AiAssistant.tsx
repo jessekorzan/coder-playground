@@ -70,11 +70,12 @@ Or type **"suggestions"** to get AI-powered code recommendations based on your c
   const [applyingCode, setApplyingCode] = useState<string | null>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   // Generate code suggestions based on current project
   const generateCodeSuggestions = async () => {
     setIsLoadingSuggestions(true);
-    
+
     try {
       const codeContext = {
         html: htmlCode.trim(),
@@ -84,7 +85,7 @@ Or type **"suggestions"** to get AI-powered code recommendations based on your c
       };
 
       let analysisPrompt = '';
-      
+
       if (!codeContext.hasContent) {
         analysisPrompt = `I'm starting a new web project. Give me 3 practical code snippet recommendations to help me get started. Format each recommendation as:
 
@@ -139,7 +140,7 @@ Focus on fun improvements like colors, animations, interactive elements, or cool
       if (aiResponse.ok) {
         const data = await aiResponse.json();
         let aiContent = data.data || data.output || data.response || data.message || '';
-        
+
         // Clean up HTML tags if present
         if (typeof aiContent === 'string' && aiContent.includes('<')) {
           aiContent = aiContent
@@ -162,16 +163,16 @@ Focus on fun improvements like colors, animations, interactive elements, or cool
         // Parse recommendations from AI response
         const recommendationBlocks = aiContent.split('**').filter((block: string) => block.trim());
         const parsedRecommendations: CodeSuggestion[] = [];
-        
+
         for (let i = 0; i < recommendationBlocks.length; i += 2) {
           if (recommendationBlocks[i] && recommendationBlocks[i + 1]) {
             const title = recommendationBlocks[i].trim();
             const content = recommendationBlocks[i + 1].trim();
-            
+
             // Extract code snippet if present
             const codeMatch = content.match(/```(\w+)?\s*([\s\S]*?)```/);
             const description = content.replace(/```[\s\S]*?```/g, '').trim();
-            
+
             parsedRecommendations.push({
               id: Date.now() + i + '',
               title,
@@ -219,9 +220,9 @@ Focus on fun improvements like colors, animations, interactive elements, or cool
       }
 
       const data = await response.json();
-      
+
       let aiResponse = data.data || data.output || data.response || data.message || 'Sorry, I couldn\'t process your request right now. Please try again.';
-      
+
       if (typeof aiResponse === 'string' && aiResponse.includes('<')) {
         aiResponse = aiResponse
           .replace(/<h3>/g, '\n**')
@@ -239,7 +240,7 @@ Focus on fun improvements like colors, animations, interactive elements, or cool
           .replace(/\n\s*\n\s*\n/g, '\n\n')
           .trim();
       }
-      
+
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         type: 'assistant',
@@ -250,7 +251,7 @@ Focus on fun improvements like colors, animations, interactive elements, or cool
       setMessages(prev => [...prev, assistantMessage]);
     } catch (error) {
       console.error('Error calling AI webhook:', error);
-      
+
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         type: 'assistant',
@@ -284,11 +285,8 @@ Focus on fun improvements like colors, animations, interactive elements, or cool
   }, [externalPrompt]);
 
   const scrollToBottom = () => {
-    if (scrollAreaRef.current) {
-      const scrollContainer = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
-      if (scrollContainer) {
-        scrollContainer.scrollTop = scrollContainer.scrollHeight;
-      }
+    if (containerRef.current) {
+      containerRef.current.scrollTop = containerRef.current.scrollHeight;
     }
   };
 
@@ -300,9 +298,8 @@ Focus on fun improvements like colors, animations, interactive elements, or cool
   useEffect(() => {
     if (isVisible && preservedScrollPosition > 0) {
       setTimeout(() => {
-        const scrollContainer = scrollAreaRef.current?.querySelector('[data-radix-scroll-area-viewport]');
-        if (scrollContainer) {
-          scrollContainer.scrollTop = preservedScrollPosition;
+        if (containerRef.current) {
+          containerRef.current.scrollTop = preservedScrollPosition;
         }
       }, 50);
     }
@@ -339,7 +336,7 @@ Focus on fun improvements like colors, animations, interactive elements, or cool
   // Apply code suggestion
   const applySuggestion = async (suggestion: CodeSuggestion) => {
     if (!onApplyCode) return;
-    
+
     setApplyingCode(suggestion.id);
     try {
       await onApplyCode(suggestion.code, suggestion.language);
@@ -375,8 +372,8 @@ Focus on fun improvements like colors, animations, interactive elements, or cool
       </div>
 
       {/* Messages */}
-      <ScrollArea ref={scrollAreaRef} className="flex-1 p-4">
-        <div className="space-y-4">
+      <div className="flex-1 p-4">
+        <div className="space-y-4 pb-4" ref={containerRef}>
           {messages.map((message) => (
             <div
               key={message.id}
@@ -444,13 +441,13 @@ Focus on fun improvements like colors, animations, interactive elements, or cool
                                     )}
                                   </div>
                                 </div>
-                                
+
                                 {suggestion.description && (
                                   <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">
                                     {suggestion.description}
                                   </p>
                                 )}
-                                
+
                                 {suggestion.code && (
                                   <div className="bg-gray-900 dark:bg-black rounded p-3 border border-gray-700 dark:border-gray-600">
                                     <div className="flex items-center justify-between mb-2">
@@ -498,7 +495,7 @@ Focus on fun improvements like colors, animations, interactive elements, or cool
             </div>
           )}
         </div>
-      </ScrollArea>
+      </div>
 
       {/* Input */}
       <div className="p-4 border-t bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">

@@ -151,9 +151,9 @@ const Index = () => {
   const handleTabChange = (newTab: string) => {
     // Store scroll position when leaving AI tab
     if (activeAssistantTab === 'ai' && newTab !== 'ai') {
-      const aiScrollArea = document.querySelector('[data-radix-scroll-area-viewport]');
-      if (aiScrollArea) {
-        setAiAssistantScrollPosition(aiScrollArea.scrollTop);
+      const aiContainer = document.querySelector('.ai-assistant-container');
+      if (aiContainer) {
+        setAiAssistantScrollPosition(aiContainer.scrollTop);
       }
     }
     setActiveAssistantTab(newTab);
@@ -625,7 +625,7 @@ document.getElementById('my-button').addEventListener('click', function() {
           </div>
           
           {/* AI Assistant - Always mounted, conditionally visible */}
-          <div className={`flex-1 ${activeAssistantTab === 'ai' ? 'block' : 'hidden'}`}>
+          <div className={`flex-1 overflow-y-auto ${activeAssistantTab === 'ai' ? 'block' : 'hidden'}`}>
             <AiAssistant 
               externalPrompt={aiPrompt}
               onPromptProcessed={handlePromptProcessed}
