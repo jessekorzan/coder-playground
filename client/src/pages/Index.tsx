@@ -17,6 +17,7 @@ const Index = () => {
   const [previewUrl, setPreviewUrl] = useState<string>('');
   const [sessionId, setSessionId] = useState<string>('');
   const [activeAssistantTab, setActiveAssistantTab] = useState('ai');
+  const [aiAssistantScrollPosition, setAiAssistantScrollPosition] = useState(0);
   const [iframeKey, setIframeKey] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const codeEditorRef = useRef<CodeEditorRef>(null);
@@ -145,6 +146,17 @@ const Index = () => {
   const generatePreviewAndSwitchTab = async () => {
     await updatePreview();
     setActiveAssistantTab('preview');
+  };
+
+  const handleTabChange = (newTab: string) => {
+    // Store scroll position when leaving AI tab
+    if (activeAssistantTab === 'ai' && newTab !== 'ai') {
+      const aiScrollArea = document.querySelector('[data-radix-scroll-area-viewport]');
+      if (aiScrollArea) {
+        setAiAssistantScrollPosition(aiScrollArea.scrollTop);
+      }
+    }
+    setActiveAssistantTab(newTab);
   };
 
 
@@ -586,7 +598,7 @@ document.getElementById('my-button').addEventListener('click', function() {
           className="bg-gray-50 dark:bg-gray-800 flex flex-col"
           style={{ width: `${100 - leftPanelWidth}%` }}
         >
-          <Tabs value={activeAssistantTab} onValueChange={setActiveAssistantTab} className="h-full flex flex-col">
+          <Tabs value={activeAssistantTab} onValueChange={handleTabChange} className="h-full flex flex-col">
             <TabsList className="grid w-full grid-cols-2 rounded-none border-b bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 h-12 flex-shrink-0">
               <TabsTrigger 
                 value="ai" 
@@ -613,6 +625,8 @@ document.getElementById('my-button').addEventListener('click', function() {
                   cssCode={cssCode}
                   jsCode={jsCode}
                   onApplyCode={handleApplyCode}
+                  preservedScrollPosition={aiAssistantScrollPosition}
+                  isVisible={activeAssistantTab === 'ai'}
                 />
               </div>
             </TabsContent>

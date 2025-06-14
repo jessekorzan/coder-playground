@@ -29,6 +29,8 @@ interface AiAssistantProps {
   cssCode?: string;
   jsCode?: string;
   onApplyCode?: (code: string, language: string) => Promise<void>;
+  preservedScrollPosition?: number;
+  isVisible?: boolean;
 }
 
 export const AiAssistant = ({ 
@@ -37,7 +39,9 @@ export const AiAssistant = ({
   htmlCode = '', 
   cssCode = '', 
   jsCode = '', 
-  onApplyCode 
+  onApplyCode,
+  preservedScrollPosition = 0,
+  isVisible = true
 }: AiAssistantProps = {}) => {
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -291,6 +295,18 @@ Focus on fun improvements like colors, animations, interactive elements, or cool
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Restore scroll position when returning to AI tab
+  useEffect(() => {
+    if (isVisible && preservedScrollPosition > 0) {
+      setTimeout(() => {
+        const scrollContainer = scrollAreaRef.current?.querySelector('[data-radix-scroll-area-viewport]');
+        if (scrollContainer) {
+          scrollContainer.scrollTop = preservedScrollPosition;
+        }
+      }, 50);
+    }
+  }, [isVisible, preservedScrollPosition]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
