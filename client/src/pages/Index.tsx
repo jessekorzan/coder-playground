@@ -598,76 +598,82 @@ document.getElementById('my-button').addEventListener('click', function() {
           className="bg-gray-50 dark:bg-gray-800 flex flex-col"
           style={{ width: `${100 - leftPanelWidth}%` }}
         >
-          <Tabs value={activeAssistantTab} onValueChange={handleTabChange} className="h-full flex flex-col">
-            <TabsList className="grid w-full grid-cols-2 rounded-none border-b bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 h-12 flex-shrink-0">
-              <TabsTrigger 
-                value="ai" 
-                className="flex items-center space-x-2 data-[state=active]:bg-gray-50 dark:data-[state=active]:bg-gray-700 data-[state=active]:text-gray-900 dark:data-[state=active]:text-white text-gray-600 dark:text-gray-400 font-medium text-sm rounded-none"
-              >
-                <Bot className="w-4 h-4" />
-                <span>AI Assistant</span>
-              </TabsTrigger>
-              <TabsTrigger 
-                value="preview" 
-                className="flex items-center space-x-2 data-[state=active]:bg-gray-50 dark:data-[state=active]:bg-gray-700 data-[state=active]:text-gray-900 dark:data-[state=active]:text-white text-gray-600 dark:text-gray-400 font-medium text-sm rounded-none"
-              >
-                <Monitor className="w-4 h-4" />
-                <span>Preview</span>
-              </TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="ai" className="flex-1 m-0 p-0 h-0 overflow-hidden">
-              <div className="h-full">
-                <AiAssistant 
-                  externalPrompt={aiPrompt}
-                  onPromptProcessed={handlePromptProcessed}
-                  htmlCode={htmlCode}
-                  cssCode={cssCode}
-                  jsCode={jsCode}
-                  onApplyCode={handleApplyCode}
-                  preservedScrollPosition={aiAssistantScrollPosition}
-                  isVisible={activeAssistantTab === 'ai'}
-                />
-              </div>
-            </TabsContent>
+          {/* Tab Headers */}
+          <div className="grid w-full grid-cols-2 rounded-none border-b bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 h-12 flex-shrink-0">
+            <button 
+              onClick={() => handleTabChange('ai')}
+              className={`flex items-center justify-center space-x-2 font-medium text-sm ${
+                activeAssistantTab === 'ai' 
+                  ? 'bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white' 
+                  : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
+              }`}
+            >
+              <Bot className="w-4 h-4" />
+              <span>AI Assistant</span>
+            </button>
+            <button 
+              onClick={() => handleTabChange('preview')}
+              className={`flex items-center justify-center space-x-2 font-medium text-sm ${
+                activeAssistantTab === 'preview' 
+                  ? 'bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white' 
+                  : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
+              }`}
+            >
+              <Monitor className="w-4 h-4" />
+              <span>Preview</span>
+            </button>
+          </div>
+          
+          {/* AI Assistant - Always mounted, conditionally visible */}
+          <div className={`flex-1 ${activeAssistantTab === 'ai' ? 'block' : 'hidden'}`}>
+            <AiAssistant 
+              externalPrompt={aiPrompt}
+              onPromptProcessed={handlePromptProcessed}
+              htmlCode={htmlCode}
+              cssCode={cssCode}
+              jsCode={jsCode}
+              onApplyCode={handleApplyCode}
+              preservedScrollPosition={aiAssistantScrollPosition}
+              isVisible={activeAssistantTab === 'ai'}
+            />
+          </div>
 
-            
-            <TabsContent value="preview" className="flex-1 m-0 p-0 h-0 overflow-hidden">
-              <div className="h-full bg-white dark:bg-gray-900 relative">
-                {previewUrl ? (
-                  <>
-                    <iframe 
-                      key={iframeKey}
-                      src={previewUrl}
-                      className="w-full h-full border-0"
-                      title="Live Preview"
-                    />
-                    {/* Overlay during drag to prevent iframe from capturing mouse events */}
-                    {isDragging && (
-                      <div className="absolute inset-0 bg-transparent cursor-col-resize z-50" />
-                    )}
-                  </>
-                ) : (
-                  <div className="h-full flex items-center justify-center bg-gray-50 dark:bg-gray-800 overflow-y-auto">
-                    <div className="text-center">
-                      <Monitor className="w-12 h-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
-                      <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">No Preview Available</h3>
-                      <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-                        Start coding to see your live preview here
-                      </p>
-                      <Button
-                        onClick={generatePreviewAndSwitchTab}
-                        className="bg-indigo-500 hover:bg-indigo-600 text-white"
-                      >
-                        <Eye className="w-4 h-4 mr-2" />
-                        Generate Preview
-                      </Button>
-                    </div>
+          {/* Preview - Only show when active */}
+          {activeAssistantTab === 'preview' && (
+            <div className="flex-1 bg-white dark:bg-gray-900 relative">
+              {previewUrl ? (
+                <>
+                  <iframe 
+                    key={iframeKey}
+                    src={previewUrl}
+                    className="w-full h-full border-0"
+                    title="Live Preview"
+                  />
+                  {/* Overlay during drag to prevent iframe from capturing mouse events */}
+                  {isDragging && (
+                    <div className="absolute inset-0 bg-transparent cursor-col-resize z-50" />
+                  )}
+                </>
+              ) : (
+                <div className="h-full flex items-center justify-center bg-gray-50 dark:bg-gray-800 overflow-y-auto">
+                  <div className="text-center">
+                    <Monitor className="w-12 h-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">No Preview Available</h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                      Start coding to see your live preview here
+                    </p>
+                    <Button
+                      onClick={generatePreviewAndSwitchTab}
+                      className="bg-indigo-500 hover:bg-indigo-600 text-white"
+                    >
+                      <Eye className="w-4 h-4 mr-2" />
+                      Generate Preview
+                    </Button>
                   </div>
-                )}
-              </div>
-            </TabsContent>
-          </Tabs>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>
