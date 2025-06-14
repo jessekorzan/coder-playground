@@ -131,21 +131,21 @@ export const CodeEditor = ({
         <TabsList className="grid w-full grid-cols-3 rounded-none border-b bg-slate-100 dark:bg-gray-800 border-slate-200 dark:border-gray-700 h-12">
           <TabsTrigger 
             value="html" 
-            className="flex items-center space-x-2 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-900 data-[state=active]:text-gray-900 dark:data-[state=active]:text-white text-gray-600 dark:text-gray-400 font-medium text-sm data-[state=active]:border-b-2 data-[state=active]:border-gray-900 dark:data-[state=active]:border-white rounded-none"
+            className="flex items-center space-x-2 data-[state=active]:bg-slate-50 dark:data-[state=active]:bg-gray-900 data-[state=active]:text-gray-900 dark:data-[state=active]:text-white text-gray-600 dark:text-gray-400 font-medium text-sm data-[state=active]:border-b-2 data-[state=active]:border-gray-900 dark:data-[state=active]:border-white rounded-none"
           >
             <FileCode className="w-4 h-4" />
             <span>HTML</span>
           </TabsTrigger>
           <TabsTrigger 
             value="css" 
-            className="flex items-center space-x-2 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-900 data-[state=active]:text-gray-900 dark:data-[state=active]:text-white text-gray-600 dark:text-gray-400 font-medium text-sm data-[state=active]:border-b-2 data-[state=active]:border-gray-900 dark:data-[state=active]:border-white rounded-none"
+            className="flex items-center space-x-2 data-[state=active]:bg-slate-50 dark:data-[state=active]:bg-gray-900 data-[state=active]:text-gray-900 dark:data-[state=active]:text-white text-gray-600 dark:text-gray-400 font-medium text-sm data-[state=active]:border-b-2 data-[state=active]:border-gray-900 dark:data-[state=active]:border-white rounded-none"
           >
             <Palette className="w-4 h-4" />
             <span>CSS</span>
           </TabsTrigger>
           <TabsTrigger 
             value="js" 
-            className="flex items-center space-x-2 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-900 data-[state=active]:text-gray-900 dark:data-[state=active]:text-white text-gray-600 dark:text-gray-400 font-medium text-sm data-[state=active]:border-b-2 data-[state=active]:border-gray-900 dark:data-[state=active]:border-white rounded-none"
+            className="flex items-center space-x-2 data-[state=active]:bg-slate-50 dark:data-[state=active]:bg-gray-900 data-[state=active]:text-gray-900 dark:data-[state=active]:text-white text-gray-600 dark:text-gray-400 font-medium text-sm data-[state=active]:border-b-2 data-[state=active]:border-gray-900 dark:data-[state=active]:border-white rounded-none"
           >
             <Zap className="w-4 h-4" />
             <span>JavaScript</span>
@@ -155,7 +155,7 @@ export const CodeEditor = ({
         <div className="flex-1 overflow-hidden">
           <TabsContent value="html" className="h-full m-0">
             <div className="h-full flex flex-col">
-              <div className="bg-gray-50 dark:bg-gray-800 px-6 py-3 text-sm text-gray-600 dark:text-gray-400 border-b border-gray-100 dark:border-gray-700">
+              <div className="bg-slate-100 dark:bg-gray-800 px-6 py-3 text-sm text-slate-600 dark:text-gray-400 border-b border-slate-200 dark:border-gray-700">
                 <p>Edit your HTML structure</p>
               </div>
               <div className="flex-1 relative">
@@ -186,7 +186,7 @@ export const CodeEditor = ({
 
           <TabsContent value="css" className="h-full m-0">
             <div className="h-full flex flex-col">
-              <div className="bg-gray-50 dark:bg-gray-800 px-6 py-3 text-sm text-gray-600 dark:text-gray-400 border-b border-gray-100 dark:border-gray-700">
+              <div className="bg-slate-100 dark:bg-gray-800 px-6 py-3 text-sm text-slate-600 dark:text-gray-400 border-b border-slate-200 dark:border-gray-700">
                 <p>Style your webpage with CSS</p>
               </div>
               <div className="flex-1 relative">
@@ -221,7 +221,7 @@ body {
 
           <TabsContent value="js" className="h-full m-0">
             <div className="h-full flex flex-col">
-              <div className="bg-gray-50 dark:bg-gray-800 px-6 py-3 text-sm text-gray-600 dark:text-gray-400 border-b border-gray-100 dark:border-gray-700">
+              <div className="bg-slate-100 dark:bg-gray-800 px-6 py-3 text-sm text-slate-600 dark:text-gray-400 border-b border-slate-200 dark:border-gray-700">
                 <p>Add interactivity with JavaScript</p>
               </div>
               <div className="flex-1 relative">
