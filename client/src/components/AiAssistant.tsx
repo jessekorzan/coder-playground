@@ -357,7 +357,7 @@ Focus on fun improvements like colors, animations, interactive elements, or cool
   };
 
   return (
-    <div className="h-full flex flex-col bg-gradient-to-b from-indigo-50 to-white dark:from-gray-800 dark:to-gray-900">
+    <div className="h-full flex flex-col bg-gradient-to-b from-indigo-50 to-white dark:from-gray-800 dark:to-gray-900 relative">
       {/* Header */}
       <div className="p-4 border-b bg-white dark:bg-gray-800 shadow-sm border-gray-200 dark:border-gray-700">
         <div className="flex items-center space-x-2">
@@ -371,134 +371,139 @@ Focus on fun improvements like colors, animations, interactive elements, or cool
         </div>
       </div>
 
-      {/* Messages */}
-      <div className="flex-1 p-4">
-        <div className="space-y-4 pb-4" ref={containerRef}>
-          {messages.map((message) => (
-            <div
-              key={message.id}
-              className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
-            >
+      {/* Messages - with padding bottom for fixed input */}
+      <div className="flex-1 overflow-hidden">
+        <div 
+          className="h-full overflow-y-auto p-4 pb-32" 
+          ref={containerRef}
+        >
+          <div className="space-y-4">
+            {messages.map((message) => (
               <div
-                className={`max-w-[85%] rounded-lg ${
-                  message.type === 'user'
-                    ? 'bg-indigo-500 text-white p-3'
-                    : 'bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 shadow-sm text-gray-900 dark:text-gray-100 py-4 px-3'
-                }`}
+                key={message.id}
+                className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
               >
-                <div className="flex items-start space-x-2">
-                  {message.type === 'assistant' && (
-                    <Bot className="w-4 h-4 text-indigo-500 dark:text-indigo-400 mt-0.5 flex-shrink-0" />
-                  )}
-                  {message.type === 'user' && (
-                    <User className="w-4 h-4 text-white mt-0.5 flex-shrink-0" />
-                  )}
-                  <div className="text-sm markdown-content min-w-0 flex-1">
-                    {message.type === 'assistant' ? (
-                      <>
-                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                          {message.content}
-                        </ReactMarkdown>
-                        {message.suggestions && message.suggestions.length > 0 && (
-                          <div className="mt-4 space-y-3">
-                            {message.suggestions.map((suggestion) => (
-                              <div 
-                                key={suggestion.id}
-                                className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3"
-                              >
-                                <div className="flex items-start justify-between mb-2">
-                                  <h4 className="font-medium text-gray-900 dark:text-gray-100 text-sm">
-                                    {suggestion.title}
-                                  </h4>
-                                  <div className="flex items-center space-x-1 ml-2">
-                                    <Button
-                                      onClick={() => copyToClipboard(suggestion.code)}
-                                      size="sm"
-                                      variant="ghost"
-                                      className="h-6 w-6 p-0"
-                                    >
-                                      <Copy className="w-3 h-3" />
-                                    </Button>
-                                    {onApplyCode && (
-                                      <Button
-                                        onClick={() => applySuggestion(suggestion)}
-                                        disabled={applyingCode === suggestion.id}
-                                        size="sm"
-                                        className="bg-emerald-500 hover:bg-emerald-600 disabled:bg-emerald-400 text-white h-7 text-xs px-3 rounded-md font-medium transition-all duration-200 shadow-sm hover:shadow-md"
-                                      >
-                                        {applyingCode === suggestion.id ? (
-                                          <>
-                                            <Loader2 className="w-3 h-3 mr-1.5 animate-spin" />
-                                            Applying...
-                                          </>
-                                        ) : (
-                                          <>
-                                            <Plus className="w-3 h-3 mr-1.5" />
-                                            Apply
-                                          </>
-                                        )}
-                                      </Button>
-                                    )}
-                                  </div>
-                                </div>
-
-                                {suggestion.description && (
-                                  <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">
-                                    {suggestion.description}
-                                  </p>
-                                )}
-
-                                {suggestion.code && (
-                                  <div className="bg-gray-900 dark:bg-black rounded p-3 border border-gray-700 dark:border-gray-600">
-                                    <div className="flex items-center justify-between mb-2">
-                                      <span className="text-xs text-gray-400 uppercase font-medium">
-                                        {suggestion.language}
-                                      </span>
-                                    </div>
-                                    <pre className="text-sm text-green-400 dark:text-green-300 overflow-x-auto font-mono leading-relaxed">
-                                      <code className="text-green-400 dark:text-green-300">{suggestion.code}</code>
-                                    </pre>
-                                  </div>
-                                )}
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </>
-                    ) : (
-                      <div className="whitespace-pre-wrap">{message.content}</div>
+                <div
+                  className={`max-w-[85%] rounded-lg ${
+                    message.type === 'user'
+                      ? 'bg-indigo-500 text-white p-3'
+                      : 'bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 shadow-sm text-gray-900 dark:text-gray-100 py-4 px-3'
+                  }`}
+                >
+                  <div className="flex items-start space-x-2">
+                    {message.type === 'assistant' && (
+                      <Bot className="w-4 h-4 text-indigo-500 dark:text-indigo-400 mt-0.5 flex-shrink-0" />
                     )}
+                    {message.type === 'user' && (
+                      <User className="w-4 h-4 text-white mt-0.5 flex-shrink-0" />
+                    )}
+                    <div className="text-sm markdown-content min-w-0 flex-1">
+                      {message.type === 'assistant' ? (
+                        <>
+                          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                            {message.content}
+                          </ReactMarkdown>
+                          {message.suggestions && message.suggestions.length > 0 && (
+                            <div className="mt-4 space-y-3">
+                              {message.suggestions.map((suggestion) => (
+                                <div 
+                                  key={suggestion.id}
+                                  className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3"
+                                >
+                                  <div className="flex items-start justify-between mb-2">
+                                    <h4 className="font-medium text-gray-900 dark:text-gray-100 text-sm">
+                                      {suggestion.title}
+                                    </h4>
+                                    <div className="flex items-center space-x-1 ml-2">
+                                      <Button
+                                        onClick={() => copyToClipboard(suggestion.code)}
+                                        size="sm"
+                                        variant="ghost"
+                                        className="h-6 w-6 p-0"
+                                      >
+                                        <Copy className="w-3 h-3" />
+                                      </Button>
+                                      {onApplyCode && (
+                                        <Button
+                                          onClick={() => applySuggestion(suggestion)}
+                                          disabled={applyingCode === suggestion.id}
+                                          size="sm"
+                                          className="bg-emerald-500 hover:bg-emerald-600 disabled:bg-emerald-400 text-white h-7 text-xs px-3 rounded-md font-medium transition-all duration-200 shadow-sm hover:shadow-md"
+                                        >
+                                          {applyingCode === suggestion.id ? (
+                                            <>
+                                              <Loader2 className="w-3 h-3 mr-1.5 animate-spin" />
+                                              Applying...
+                                            </>
+                                          ) : (
+                                            <>
+                                              <Plus className="w-3 h-3 mr-1.5" />
+                                              Apply
+                                            </>
+                                          )}
+                                        </Button>
+                                      )}
+                                    </div>
+                                  </div>
+
+                                  {suggestion.description && (
+                                    <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">
+                                      {suggestion.description}
+                                    </p>
+                                  )}
+
+                                  {suggestion.code && (
+                                    <div className="bg-gray-900 dark:bg-black rounded p-3 border border-gray-700 dark:border-gray-600">
+                                      <div className="flex items-center justify-between mb-2">
+                                        <span className="text-xs text-gray-400 uppercase font-medium">
+                                          {suggestion.language}
+                                        </span>
+                                      </div>
+                                      <pre className="text-sm text-green-400 dark:text-green-300 overflow-x-auto font-mono leading-relaxed">
+                                        <code className="text-green-400 dark:text-green-300">{suggestion.code}</code>
+                                      </pre>
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        <div className="whitespace-pre-wrap">{message.content}</div>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
-          {(isLoading || isLoadingSuggestions) && (
-            <div className="flex justify-start">
-              <div className="bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 shadow-sm rounded-lg p-3">
-                <div className="flex items-center space-x-2">
-                  {isLoadingSuggestions ? (
-                    <Lightbulb className="w-4 h-4 text-purple-500 dark:text-purple-400" />
-                  ) : (
-                    <Bot className="w-4 h-4 text-indigo-500 dark:text-indigo-400" />
-                  )}
-                  <div className="flex space-x-1">
-                    <div className="w-2 h-2 bg-indigo-300 dark:bg-indigo-500 rounded-full animate-bounce"></div>
-                    <div className="w-2 h-2 bg-indigo-300 dark:bg-indigo-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                    <div className="w-2 h-2 bg-indigo-300 dark:bg-indigo-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+            ))}
+            {(isLoading || isLoadingSuggestions) && (
+              <div className="flex justify-start">
+                <div className="bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 shadow-sm rounded-lg p-3">
+                  <div className="flex items-center space-x-2">
+                    {isLoadingSuggestions ? (
+                      <Lightbulb className="w-4 h-4 text-purple-500 dark:text-purple-400" />
+                    ) : (
+                      <Bot className="w-4 h-4 text-indigo-500 dark:text-indigo-400" />
+                    )}
+                    <div className="flex space-x-1">
+                      <div className="w-2 h-2 bg-indigo-300 dark:bg-indigo-500 rounded-full animate-bounce"></div>
+                      <div className="w-2 h-2 bg-indigo-300 dark:bg-indigo-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                      <div className="w-2 h-2 bg-indigo-300 dark:bg-indigo-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                    </div>
+                    <span className="text-sm text-gray-600 dark:text-gray-400">
+                      {isLoadingSuggestions ? 'Analyzing your code...' : 'Thinking...'}
+                    </span>
                   </div>
-                  <span className="text-sm text-gray-600 dark:text-gray-400">
-                    {isLoadingSuggestions ? 'Analyzing your code...' : 'Thinking...'}
-                  </span>
                 </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Input */}
-      <div className="p-4 border-t bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+      {/* Fixed Input Area at Bottom */}
+      <div className="absolute bottom-0 left-0 right-0 p-4 border-t bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 shadow-lg">
         <div className="flex space-x-2 mb-2">
           <Button
             onClick={generateCodeSuggestions}
