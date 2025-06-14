@@ -16,10 +16,12 @@ export interface IStorage {
 
 export class MemStorage implements IStorage {
   private users: Map<number, User>;
+  private previewSessions: Map<string, PreviewSession>;
   currentId: number;
 
   constructor() {
     this.users = new Map();
+    this.previewSessions = new Map();
     this.currentId = 1;
   }
 
@@ -38,6 +40,37 @@ export class MemStorage implements IStorage {
     const user: User = { ...insertUser, id };
     this.users.set(id, user);
     return user;
+  }
+
+  async getPreviewSession(id: string): Promise<PreviewSession | undefined> {
+    return this.previewSessions.get(id);
+  }
+
+  async createPreviewSession(session: InsertPreviewSession): Promise<PreviewSession> {
+    const now = new Date().toISOString();
+    const previewSession: PreviewSession = {
+      id: session.id,
+      htmlCode: session.htmlCode || "",
+      cssCode: session.cssCode || "",
+      jsCode: session.jsCode || "",
+      createdAt: now,
+      updatedAt: now,
+    };
+    this.previewSessions.set(session.id, previewSession);
+    return previewSession;
+  }
+
+  async updatePreviewSession(id: string, updates: Partial<InsertPreviewSession>): Promise<PreviewSession | undefined> {
+    const existing = this.previewSessions.get(id);
+    if (!existing) return undefined;
+
+    const updated: PreviewSession = {
+      ...existing,
+      ...updates,
+      updatedAt: new Date().toISOString(),
+    };
+    this.previewSessions.set(id, updated);
+    return updated;
   }
 }
 

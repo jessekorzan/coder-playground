@@ -13,6 +13,8 @@ const Index = () => {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [aiPrompt, setAiPrompt] = useState<string>('');
   const [leftPanelWidth, setLeftPanelWidth] = useState(70); // Percentage
+  const [previewUrl, setPreviewUrl] = useState<string>('');
+  const [sessionId, setSessionId] = useState<string>('');
 
   const handleAiRequest = (prompt: string) => {
     setAiPrompt(prompt);

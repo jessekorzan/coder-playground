@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -19,18 +19,16 @@ export type User = typeof users.$inferSelect;
 // Preview session schema
 export const previewSessions = pgTable("preview_sessions", {
   id: text("id").primaryKey(),
-  htmlCode: text("html_code").default(""),
-  cssCode: text("css_code").default(""),
-  jsCode: text("js_code").default(""),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
+  htmlCode: text("html_code").notNull().default(""),
+  cssCode: text("css_code").notNull().default(""),
+  jsCode: text("js_code").notNull().default(""),
+  createdAt: text("created_at").notNull(),
+  updatedAt: text("updated_at").notNull(),
 });
 
-export const insertPreviewSessionSchema = createInsertSchema(previewSessions).pick({
-  id: true,
-  htmlCode: true,
-  cssCode: true,
-  jsCode: true,
+export const insertPreviewSessionSchema = createInsertSchema(previewSessions).omit({
+  createdAt: true,
+  updatedAt: true,
 });
 
 export type InsertPreviewSession = z.infer<typeof insertPreviewSessionSchema>;
