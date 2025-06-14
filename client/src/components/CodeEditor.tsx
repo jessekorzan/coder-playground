@@ -87,16 +87,16 @@ export const CodeEditor = ({
     let prompt = '';
     switch (action) {
       case 'debug':
-        prompt = `Help me debug this ${language} code:\n\n\`\`\`${language}\n${code}\n\`\`\`\n\nWhat issues do you see and how can I fix them?`;
+        prompt = `Focus only on this ${language} code snippet. What issues do you see and how can I fix them? Keep it concise:\n\n\`\`\`${language}\n${code}\n\`\`\``;
         break;
       case 'explain':
-        prompt = `Please explain what this ${language} code does:\n\n\`\`\`${language}\n${code}\n\`\`\``;
+        prompt = `Explain only this ${language} code snippet briefly. What does it do?\n\n\`\`\`${language}\n${code}\n\`\`\``;
         break;
       case 'improve':
-        prompt = `Is there a better way to write this ${language} code?\n\n\`\`\`${language}\n${code}\n\`\`\`\n\nPlease suggest improvements for performance, readability, or best practices.`;
+        prompt = `Focus just on this ${language} snippet. How can I improve it? Give me a quick suggestion:\n\n\`\`\`${language}\n${code}\n\`\`\``;
         break;
       case 'surprise':
-        prompt = `Here's some ${language} code I wrote:\n\n\`\`\`${language}\n${code}\n\`\`\`\n\nSurprise me! What creative improvements, features, or alternatives can you suggest?`;
+        prompt = `Looking at just this ${language} snippet, give me one creative idea or cool enhancement:\n\n\`\`\`${language}\n${code}\n\`\`\``;
         break;
     }
 

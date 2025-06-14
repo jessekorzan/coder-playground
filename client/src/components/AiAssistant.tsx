@@ -23,7 +23,20 @@ export const AiAssistant = ({ externalPrompt, onPromptProcessed }: AiAssistantPr
     {
       id: '1',
       type: 'assistant',
-      content: "Hi there, Code Cadet! 👋 I'm your AI learning assistant. I'm here to help you learn HTML, CSS, and JavaScript! Ask me anything like:\n\n• How do I change text color?\n• How do I make a button?\n• What does this code do?\n• How do I center text?\n\nWhat would you like to learn today?",
+      content: `# Hi there, Code Cadet! 👋
+
+I'm your AI learning assistant. I'm here to help you learn **HTML**, **CSS**, and **JavaScript**!
+
+## Ask me anything like:
+
+- How do I change text color?
+- How do I make a button?
+- What does this code do?
+- How do I center text?
+
+---
+
+**What would you like to learn today?**`,
       timestamp: new Date(),
     },
   ]);
@@ -174,10 +187,10 @@ export const AiAssistant = ({ externalPrompt, onPromptProcessed }: AiAssistantPr
               className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
             >
               <div
-                className={`max-w-[85%] rounded-lg p-3 ${
+                className={`max-w-[85%] rounded-lg ${
                   message.type === 'user'
-                    ? 'bg-indigo-500 text-white'
-                    : 'bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 shadow-sm text-gray-900 dark:text-gray-100'
+                    ? 'bg-indigo-500 text-white p-3'
+                    : 'bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 shadow-sm text-gray-900 dark:text-gray-100 py-4 px-3'
                 }`}
               >
                 <div className="flex items-start space-x-2">
@@ -187,7 +200,7 @@ export const AiAssistant = ({ externalPrompt, onPromptProcessed }: AiAssistantPr
                   {message.type === 'user' && (
                     <User className="w-4 h-4 text-white mt-0.5 flex-shrink-0" />
                   )}
-                  <div className="text-sm markdown-content">
+                  <div className="text-sm markdown-content min-w-0 flex-1">
                     {message.type === 'assistant' ? (
                       <ReactMarkdown remarkPlugins={[remarkGfm]}>
                         {message.content}
