@@ -1,5 +1,5 @@
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useImperativeHandle, forwardRef } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { FileCode, Palette, Zap } from 'lucide-react';
 import { SyntaxHighlighter } from './SyntaxHighlighter';
@@ -15,7 +15,11 @@ interface CodeEditorProps {
   onAiRequest?: (prompt: string) => void;
 }
 
-export const CodeEditor = ({
+export interface CodeEditorRef {
+  switchToTab: (tab: 'html' | 'css' | 'js') => void;
+}
+
+export const CodeEditor = forwardRef<CodeEditorRef, CodeEditorProps>(({
   htmlCode,
   cssCode,
   jsCode,
@@ -23,7 +27,7 @@ export const CodeEditor = ({
   onCssChange,
   onJsChange,
   onAiRequest,
-}: CodeEditorProps) => {
+}, ref) => {
   const [activeTab, setActiveTab] = useState('html');
   const [contextMenu, setContextMenu] = useState<{
     visible: boolean;
@@ -124,6 +128,13 @@ export const CodeEditor = ({
       }
     };
   };
+
+  // Expose tab switching method to parent component
+  useImperativeHandle(ref, () => ({
+    switchToTab: (tab: 'html' | 'css' | 'js') => {
+      setActiveTab(tab);
+    }
+  }));
 
   return (
     <div className="h-full bg-slate-50 dark:bg-gray-900">
@@ -266,4 +277,4 @@ document.getElementById('myButton').addEventListener('click', function() {
       />
     </div>
   );
-};
+});
