@@ -151,6 +151,65 @@ const Index = () => {
     setActiveAssistantTab('preview');
   };
 
+  // Helper function to detect language from recommendation title
+  const detectLanguageFromTitle = (title: string): string => {
+    const lowerTitle = title.toLowerCase();
+    if (lowerTitle.includes('css') || lowerTitle.includes('style') || lowerTitle.includes('color') || lowerTitle.includes('animation') || lowerTitle.includes('background')) {
+      return 'css';
+    }
+    if (lowerTitle.includes('javascript') || lowerTitle.includes('js') || lowerTitle.includes('click') || lowerTitle.includes('function') || lowerTitle.includes('interactive')) {
+      return 'javascript';
+    }
+    return 'html';
+  };
+
+  // Helper function to generate basic code for recommendations
+  const generateCodeForRecommendation = (title: string): string => {
+    const lowerTitle = title.toLowerCase();
+    
+    if (lowerTitle.includes('background') && lowerTitle.includes('animation')) {
+      return `/* ${title} */
+@keyframes moveBackground {
+  0% { transform: translateX(-50px); }
+  100% { transform: translateX(50px); }
+}
+
+.animated-bg {
+  animation: moveBackground 3s ease-in-out infinite alternate;
+}`;
+    }
+    
+    if (lowerTitle.includes('hover') || lowerTitle.includes('effect')) {
+      return `/* ${title} */
+.hover-effect:hover {
+  transform: scale(1.05);
+  transition: all 0.3s ease;
+}`;
+    }
+    
+    if (lowerTitle.includes('button') || lowerTitle.includes('click')) {
+      return `// ${title}
+document.addEventListener('DOMContentLoaded', function() {
+  const button = document.querySelector('.interactive-btn');
+  if (button) {
+    button.addEventListener('click', function() {
+      this.style.background = '#ff6b6b';
+      setTimeout(() => this.style.background = '', 1000);
+    });
+  }
+});`;
+    }
+    
+    if (lowerTitle.includes('element') || lowerTitle.includes('content')) {
+      return `<!-- ${title} -->
+<div class="fun-element">
+  <p>This is a fun interactive element!</p>
+</div>`;
+    }
+    
+    return `/* ${title} - Add this enhancement to your code */`;
+  };
+
   // Analyze code context and generate AI recommendations
   const generateCodeRecommendations = async () => {
     try {
@@ -241,25 +300,59 @@ Focus on fun improvements like colors, animations, interactive elements, or cool
             .trim();
         }
 
-        // Parse recommendations from AI response
-        const recommendationBlocks = aiContent.split('**').filter((block: string) => block.trim());
+        // Parse recommendations from AI response with improved parsing
         const parsedRecommendations = [];
         
-        for (let i = 0; i < recommendationBlocks.length; i += 2) {
-          if (recommendationBlocks[i] && recommendationBlocks[i + 1]) {
-            const title = recommendationBlocks[i].trim();
-            const content = recommendationBlocks[i + 1].trim();
-            
-            // Extract code snippet if present
-            const codeMatch = content.match(/```(\w+)?\s*([\s\S]*?)```/);
-            const description = content.replace(/```[\s\S]*?```/g, '').trim();
-            
-            parsedRecommendations.push({
-              id: Date.now() + i,
-              title,
-              description,
-              code: codeMatch ? codeMatch[2].trim() : '',
-              language: codeMatch ? codeMatch[1] || 'html' : 'html'
+        // Try multiple parsing strategies
+        // Strategy 1: Look for numbered recommendations
+        const numberedMatches = aiContent.match(/(\d+\.?\s*[^0-9\n]+)(?:\n|$)/g);
+        if (numberedMatches && numberedMatches.length >= 2) {
+          numberedMatches.forEach((match: string, index: number) => {
+            const cleanMatch = match.replace(/^\d+\.?\s*/, '').trim();
+            if (cleanMatch) {
+              parsedRecommendations.push({
+                id: Date.now() + index,
+                title: cleanMatch,
+                description: 'Click Apply to add this feature to your code',
+                code: generateCodeForRecommendation(cleanMatch),
+                language: detectLanguageFromTitle(cleanMatch)
+              });
+            }
+          });
+        } else {
+          // Strategy 2: Look for ** markers (original method)
+          const recommendationBlocks = aiContent.split('**').filter((block: string) => block.trim());
+          
+          for (let i = 0; i < recommendationBlocks.length; i += 2) {
+            if (recommendationBlocks[i] && recommendationBlocks[i + 1]) {
+              const title = recommendationBlocks[i].trim();
+              const content = recommendationBlocks[i + 1].trim();
+              
+              // Extract code snippet if present
+              const codeMatch = content.match(/```(\w+)?\s*([\s\S]*?)```/);
+              const description = content.replace(/```[\s\S]*?```/g, '').trim();
+              
+              parsedRecommendations.push({
+                id: Date.now() + i,
+                title,
+                description: description || 'Click Apply to add this enhancement',
+                code: codeMatch ? codeMatch[2].trim() : '',
+                language: codeMatch ? codeMatch[1] || 'html' : 'html'
+              });
+            }
+          }
+          
+          // Strategy 3: If no structured format found, create generic recommendations
+          if (parsedRecommendations.length === 0) {
+            const lines = aiContent.split('\n').filter(line => line.trim().length > 10);
+            lines.slice(0, 3).forEach((line, index) => {
+              parsedRecommendations.push({
+                id: Date.now() + index,
+                title: line.trim().substring(0, 50) + (line.length > 50 ? '...' : ''),
+                description: 'Click Apply to enhance your code with this suggestion',
+                code: generateCodeForRecommendation(line),
+                language: detectLanguageFromTitle(line)
+              });
             });
           }
         }
