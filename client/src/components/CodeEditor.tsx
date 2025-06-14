@@ -278,3 +278,5 @@ document.getElementById('myButton').addEventListener('click', function() {
     </div>
   );
 });
+
+CodeEditor.displayName = 'CodeEditor';

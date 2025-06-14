@@ -1,6 +1,6 @@
 
-import { useState, useEffect } from 'react';
-import { CodeEditor } from '@/components/CodeEditor';
+import { useState, useEffect, useRef } from 'react';
+import { CodeEditor, CodeEditorRef } from '@/components/CodeEditor';
 import { AiAssistant } from '@/components/AiAssistant';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -22,6 +22,7 @@ const Index = () => {
   const [recommendations, setRecommendations] = useState<any[]>([]);
   const [isLoadingRecommendations, setIsLoadingRecommendations] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const codeEditorRef = useRef<CodeEditorRef>(null);
 
   const handleAiRequest = (prompt: string) => {
     setAiPrompt(prompt);
@@ -283,11 +284,8 @@ Focus on fun improvements like colors, animations, interactive elements, or cool
           }
           return code;
         });
-        // Switch to HTML tab and then to editor panel to show the applied code
-        setTimeout(() => {
-          const htmlTab = document.querySelector('[data-value="html"]') as HTMLElement;
-          if (htmlTab) htmlTab.click();
-        }, 100);
+        // Switch to HTML tab to show the applied code
+        codeEditorRef.current?.switchToTab('html');
         break;
       case 'css':
         setCssCode(prevCode => {
@@ -296,11 +294,8 @@ Focus on fun improvements like colors, animations, interactive elements, or cool
           }
           return code;
         });
-        // Switch to CSS tab and then to editor panel to show the applied code
-        setTimeout(() => {
-          const cssTab = document.querySelector('[data-value="css"]') as HTMLElement;
-          if (cssTab) cssTab.click();
-        }, 100);
+        // Switch to CSS tab to show the applied code
+        codeEditorRef.current?.switchToTab('css');
         break;
       case 'javascript':
       case 'js':
@@ -310,11 +305,8 @@ Focus on fun improvements like colors, animations, interactive elements, or cool
           }
           return code;
         });
-        // Switch to JS tab and then to editor panel to show the applied code
-        setTimeout(() => {
-          const jsTab = document.querySelector('[data-value="js"]') as HTMLElement;
-          if (jsTab) jsTab.click();
-        }, 100);
+        // Switch to JS tab to show the applied code
+        codeEditorRef.current?.switchToTab('js');
         break;
       default:
         // Default to HTML if language is unclear
@@ -324,10 +316,7 @@ Focus on fun improvements like colors, animations, interactive elements, or cool
           }
           return code;
         });
-        setTimeout(() => {
-          const htmlTab = document.querySelector('[data-value="html"]') as HTMLElement;
-          if (htmlTab) htmlTab.click();
-        }, 100);
+        codeEditorRef.current?.switchToTab('html');
     }
   };
 
@@ -506,6 +495,7 @@ document.getElementById('my-button').addEventListener('click', function() {
           style={{ width: `${leftPanelWidth}%` }}
         >
           <CodeEditor
+            ref={codeEditorRef}
             htmlCode={htmlCode}
             cssCode={cssCode}
             jsCode={jsCode}
