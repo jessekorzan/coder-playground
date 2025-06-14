@@ -40,9 +40,13 @@
 }
 
 .markdown-content pre {
-  @apply bg-gray-100 dark:bg-gray-800 p-2 rounded text-xs mb-2 max-w-full overflow-x-auto;
+  @apply bg-gray-100 dark:bg-gray-800 p-2 rounded text-xs mb-2 max-w-full;
   word-wrap: break-word;
   white-space: pre-wrap;
+  overflow-x: auto;
+  overflow-wrap: break-word;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .markdown-content pre code {

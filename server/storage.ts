@@ -1,4 +1,4 @@
-import { users, type User, type InsertUser } from "@shared/schema";
+import { users, previewSessions, type User, type InsertUser, type PreviewSession, type InsertPreviewSession } from "@shared/schema";
 
 // modify the interface with any CRUD methods
 // you might need
@@ -7,6 +7,11 @@ export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  
+  // Preview session methods
+  getPreviewSession(id: string): Promise<PreviewSession | undefined>;
+  createPreviewSession(session: InsertPreviewSession): Promise<PreviewSession>;
+  updatePreviewSession(id: string, updates: Partial<InsertPreviewSession>): Promise<PreviewSession | undefined>;
 }
 
 export class MemStorage implements IStorage {

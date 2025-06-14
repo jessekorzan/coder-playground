@@ -12,6 +12,7 @@ const Index = () => {
   const [jsCode, setJsCode] = useState('');
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [aiPrompt, setAiPrompt] = useState<string>('');
+  const [leftPanelWidth, setLeftPanelWidth] = useState(70); // Percentage
 
   const handleAiRequest = (prompt: string) => {
     setAiPrompt(prompt);
@@ -19,6 +20,31 @@ const Index = () => {
 
   const handlePromptProcessed = () => {
     setAiPrompt('');
+  };
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    
+    const handleMouseMove = (e: MouseEvent) => {
+      const containerWidth = window.innerWidth;
+      const newLeftWidth = (e.clientX / containerWidth) * 100;
+      
+      // Constrain between 30% and 80%
+      const clampedWidth = Math.min(Math.max(newLeftWidth, 30), 80);
+      setLeftPanelWidth(clampedWidth);
+    };
+
+    const handleMouseUp = () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
   };
 
   // Initialize dark mode from localStorage
@@ -208,7 +234,10 @@ document.getElementById('my-button').addEventListener('click', function() {
       {/* Main Content */}
       <div className="flex h-[calc(100vh-4rem)]">
         {/* Left Panel - Code Editor */}
-        <div className="w-[70%] border-r border-gray-100 dark:border-gray-700">
+        <div 
+          className="border-r border-gray-100 dark:border-gray-700"
+          style={{ width: `${leftPanelWidth}%` }}
+        >
           <CodeEditor
             htmlCode={htmlCode}
             cssCode={cssCode}
@@ -220,8 +249,17 @@ document.getElementById('my-button').addEventListener('click', function() {
           />
         </div>
 
+        {/* Resize Handle */}
+        <div 
+          className="w-1 bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 cursor-col-resize flex-shrink-0 transition-colors duration-150"
+          onMouseDown={handleMouseDown}
+        />
+
         {/* Right Panel - AI Assistant */}
-        <div className="w-[30%] bg-gray-50 dark:bg-gray-800">
+        <div 
+          className="bg-gray-50 dark:bg-gray-800"
+          style={{ width: `${100 - leftPanelWidth}%` }}
+        >
           <AiAssistant 
             externalPrompt={aiPrompt}
             onPromptProcessed={handlePromptProcessed}
