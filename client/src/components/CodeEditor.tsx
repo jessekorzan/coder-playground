@@ -1,3 +1,4 @@
+
 import { useState, useRef, useImperativeHandle, forwardRef } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { FileCode, Palette, Zap } from 'lucide-react';
@@ -53,17 +54,17 @@ export const CodeEditor = forwardRef<CodeEditorRef, CodeEditorProps>(({
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>, onChange: (code: string) => void) => {
     if (e.key === 'Tab') {
       e.preventDefault();
-
+      
       const textarea = e.currentTarget;
       const start = textarea.selectionStart;
       const end = textarea.selectionEnd;
       const value = textarea.value;
-
+      
       // Insert two spaces at the cursor position
       const newValue = value.substring(0, start) + '  ' + value.substring(end);
-
+      
       onChange(newValue);
-
+      
       // Set cursor position after the inserted spaces
       setTimeout(() => {
         textarea.selectionStart = textarea.selectionEnd = start + 2;
@@ -75,13 +76,13 @@ export const CodeEditor = forwardRef<CodeEditorRef, CodeEditorProps>(({
     const textarea = e.currentTarget;
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
-
+    
     // Only show context menu if text is selected
     if (start !== end) {
       e.preventDefault();
-
+      
       const selectedText = textarea.value.substring(start, end);
-
+      
       setContextMenu({
         visible: true,
         x: e.clientX,
@@ -93,76 +94,25 @@ export const CodeEditor = forwardRef<CodeEditorRef, CodeEditorProps>(({
   };
 
   const handleAiAction = (action: string, code: string, language: string) => {
+    if (!onAiRequest) return;
+
     let prompt = '';
-
-    if (action === 'explain') {
-      // For explain, use regular chat
-      prompt = `Explain only this ${language} code snippet briefly. What does it do?\n\n\`\`\`${language}\n${code}\n\`\`\``;
-      onAiRequest(prompt);
-    } else {
-      // For all other actions, use suggestion workflow
-      switch (action) {
-        case 'debug':
-          prompt = `Analyze this ${language} code and provide 3 specific debugging suggestions to fix issues:
-
-${language}:
-\`\`\`${language}
-${code}
-\`\`\`
-
-Format each suggestion as:
-**[Fix Title]**
-Brief description of the issue and solution
-\`\`\`${language}
-corrected code snippet
-\`\`\`
-
-Focus on fixing syntax errors, logic issues, and best practices. IMPORTANT - Respond with ONLY the formatted suggestions. Do NOT add anything else.`;
-          break;
-        case 'improve':
-          prompt = `Analyze this ${language} code and provide 3 specific improvement suggestions:
-
-${language}:
-\`\`\`${language}
-${code}
-\`\`\`
-
-Format each suggestion as:
-**[Improvement Title]**
-Brief description of the enhancement
-\`\`\`${language}
-improved code snippet
-\`\`\`
-
-Focus on performance, readability, and modern best practices. IMPORTANT - Respond with ONLY the formatted suggestions. Do NOT add anything else.`;
-          break;
-        case 'surprise':
-          prompt = `Analyze this ${language} code and provide 3 creative enhancement suggestions:
-
-${language}:
-\`\`\`${language}
-${code}
-\`\`\`
-
-Format each suggestion as:
-**[Creative Enhancement Title]**
-Brief description of the cool feature
-\`\`\`${language}
-enhanced code snippet
-\`\`\`
-
-Focus on animations, interactive elements, visual effects, or fun features. IMPORTANT - Respond with ONLY the formatted suggestions. Do NOT add anything else.`;
-          break;
-      }
-
-      // Trigger suggestion workflow by sending "suggestions" to chat
-      onAiRequest('suggestions');
-
-      // Then immediately send the specific analysis prompt
-      setTimeout(() => {
-        onAiRequest(prompt);
-      }, 100);
+    switch (action) {
+      case 'debug':
+        prompt = `Focus only on this ${language} code snippet. What issues do you see and how can I fix them? Keep it concise:\n\n\`\`\`${language}\n${code}\n\`\`\``;
+        break;
+      case 'explain':
+        prompt = `Explain only this ${language} code snippet briefly. What does it do?\n\n\`\`\`${language}\n${code}\n\`\`\``;
+        break;
+      case 'improve':
+        prompt = `Focus just on this ${language} snippet. How can I improve it? Give me a quick suggestion:\n\n\`\`\`${language}\n${code}\n\`\`\``;
+        break;
+      case 'surprise':
+        prompt = `Looking at just this ${language} snippet, give me one creative idea or cool enhancement:\n\n\`\`\`${language}\n${code}\n\`\`\``;
+        break;
     }
+
+    onAiRequest(prompt);
   };
 
   const closeContextMenu = () => {
@@ -315,7 +265,7 @@ document.getElementById('myButton').addEventListener('click', function() {
           </TabsContent>
         </div>
       </Tabs>
-
+      
       <CodeContextMenu
         visible={contextMenu.visible}
         x={contextMenu.x}
