@@ -131,7 +131,7 @@ Important Instructions:
 - Respond with ONLY the formatted recommendations. Do NOT add anything else.`;
       }
 
-      const aiResponse = await fetch(API_CONFIG.webhookUrl, {
+      const aiResponse = await fetch(API_CONFIG.AI_WEBHOOK_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -209,7 +209,7 @@ Important Instructions:
     setIsLoading(true);
 
     try {
-      const response = await fetch(API_CONFIG.webhookUrl, {
+      const response = await fetch(API_CONFIG.AI_WEBHOOK_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
