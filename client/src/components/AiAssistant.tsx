@@ -100,7 +100,7 @@ Focus on:
 2. Colourful and bold CSS styling
 3. Fun visual JavaScript elements`;
       } else {
-        analysisPrompt = `Analyze this code and provide 3 specific improvement recommendations:
+        analysisPrompt = `Analyze this code and provide 3 specific improvement or debug recommendations:
 
 HTML:
 \`\`\`html
@@ -124,7 +124,10 @@ Brief description
 code snippet
 \`\`\`
 
-Focus on fun improvements like colors, animations, interactive elements, or cool visual effects. IMPORTANT - Respond with ONLY the formatted recommendations. Do NOT add anything else.`;
+Important Instructions: 
+- Suggest improvements and fixes only for the provided code
+- Suggest new elements or features only if they are visually exciting and interesting
+- Respond with ONLY the formatted recommendations. Do NOT add anything else.`;
       }
 
       const aiResponse = await fetch('https://n8n-service-u37x.onrender.com/webhook/chat', {

@@ -304,20 +304,18 @@ const Index = () => {
     
     // Ask AI to refactor the merged code for validity and error-free output
     try {
-      const refactorPrompt = `Please review this ${targetLanguage} code. Maintain its original intent, but refactor and validate for error and redundancy free code. Return only the cleaned code without explanations:
+      const refactorPrompt = `Please review this ${targetLanguage} code. Do not change more than needed, except in the case of an existing error. Return only the code without explanations:
 
 \`\`\`${targetLanguage}
 ${mergedCode}
 \`\`\`
 
 Requirements:
-- All documents start with a comment explaining the code's purpose
 - Fix any syntax errors
 - Ensure proper formatting and indentation
-- Remove redundancies and unnecessary code
 - Make sure the code is functional and valid
 
-Return only the refactored ${targetLanguage} code:`;
+Return only valid refactored ${targetLanguage} code:`;
 
       const aiResponse = await fetch('https://n8n-service-u37x.onrender.com/webhook/chat', {
         method: 'POST',
