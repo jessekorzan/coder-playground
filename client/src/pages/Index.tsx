@@ -280,109 +280,73 @@ const Index = () => {
     return existingJs + '\n\n// Applied suggestion\n' + processedNewJs;
   };
 
-  // Apply code suggestion from unified AI Assistant with AI-powered refactoring
+  // Apply code suggestion from unified AI Assistant with intelligent merging
   const handleApplyCode = async (code: string, language: string): Promise<void> => {
-    // First, merge the code intelligently
-    let mergedCode = '';
     let targetLanguage = language.toLowerCase();
-    
-    switch (targetLanguage) {
-      case 'html':
-        mergedCode = mergeHtmlCode(htmlCode, code);
-        break;
-      case 'css':
-        mergedCode = mergeCssCode(cssCode, code);
-        break;
-      case 'javascript':
-      case 'js':
-        mergedCode = mergeJsCode(jsCode, code);
-        targetLanguage = 'javascript';
-        break;
-      default:
-        mergedCode = mergeHtmlCode(htmlCode, code);
-        targetLanguage = 'html';
+    if (targetLanguage === 'js') {
+      targetLanguage = 'javascript';
     }
     
-    // Ask AI to refactor the merged code for validity and error-free output
+    // Get current code based on target language
+    let currentCode = '';
+    switch (targetLanguage) {
+      case 'html':
+        currentCode = htmlCode;
+        break;
+      case 'css':
+        currentCode = cssCode;
+        break;
+      case 'javascript':
+        currentCode = jsCode;
+        break;
+      default:
+        currentCode = htmlCode;
+        targetLanguage = 'html';
+    }
+
+    // Step 1: Clear the current view
+    switch (targetLanguage) {
+      case 'html':
+        setHtmlCode('');
+        break;
+      case 'css':
+        setCssCode('');
+        break;
+      case 'javascript':
+        setJsCode('');
+        break;
+    }
+
+    // Step 2: Switch to the appropriate tab immediately
+    switch (targetLanguage) {
+      case 'html':
+        codeEditorRef.current?.switchToTab('html');
+        break;
+      case 'css':
+        codeEditorRef.current?.switchToTab('css');
+        break;
+      case 'javascript':
+        codeEditorRef.current?.switchToTab('js');
+        break;
+    }
+
+    // Step 3: Determine best merge strategy and create merged code
+    let mergedCode = '';
+    
     try {
-      const refactorPrompt = `Please review this ${targetLanguage} code. Do not change more than needed, except in the case of an existing error. Return only the code without explanations:
-
-\`\`\`${targetLanguage}
-${mergedCode}
-\`\`\`
-
-Requirements:
-- Fix any syntax errors
-- Ensure proper formatting and indentation
-- Make sure the code is functional and valid
-- Preserve all existing statements, especially document and window references
-- Do not remove or truncate any working code
-
-Return only valid refactored ${targetLanguage} code with NO additional text or explanations:`;
-
-      const aiResponse = await fetch(API_CONFIG.AI_WEBHOOK_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          chatInput: refactorPrompt
-        }),
-      });
-
-      if (aiResponse.ok) {
-        const data = await aiResponse.json();
-        let refactoredCode = data.data || data.output || data.response || data.message || mergedCode;
-        
-        // Clean up AI response to extract just the code
-        if (typeof refactoredCode === 'string') {
-          // Remove markdown code blocks if present
-          refactoredCode = refactoredCode.replace(/```[\w]*\n/g, '').replace(/```/g, '').trim();
-          
-          // For JavaScript, look for common starting patterns including document
-          if (targetLanguage === 'javascript') {
-            const jsCodeMatch = refactoredCode.match(/(document\.|window\.|function\s|var\s|let\s|const\s|class\s|\/\*|\/\/|[a-zA-Z_$][a-zA-Z0-9_$]*\s*[=\(]|if\s*\(|for\s*\(|while\s*\(|switch\s*\(|try\s*\{)[\s\S]*/);
-            if (jsCodeMatch) {
-              refactoredCode = jsCodeMatch[0];
-            }
-          } else {
-            // Remove any explanatory text before or after code for HTML/CSS
-            const codeBlockMatch = refactoredCode.match(new RegExp(`(<!DOCTYPE|<html|<head|<body|\\.|#|function|var|let|const|/\\*).*`, 's'));
-            if (codeBlockMatch) {
-              refactoredCode = codeBlockMatch[0];
-            }
-          }
-        }
-        
-        // Apply the refactored code
-        switch (targetLanguage) {
-          case 'html':
-            setHtmlCode(refactoredCode);
-            break;
-          case 'css':
-            setCssCode(refactoredCode);
-            break;
-          case 'javascript':
-            setJsCode(refactoredCode);
-            break;
-        }
-      } else {
-        // Fallback to merged code if AI refactoring fails
-        switch (targetLanguage) {
-          case 'html':
-            setHtmlCode(mergedCode);
-            break;
-          case 'css':
-            setCssCode(mergedCode);
-            break;
-          case 'javascript':
-            setJsCode(mergedCode);
-            break;
-        }
+      switch (targetLanguage) {
+        case 'html':
+          mergedCode = mergeHtmlCode(currentCode, code);
+          break;
+        case 'css':
+          mergedCode = mergeCssCode(currentCode, code);
+          break;
+        case 'javascript':
+          mergedCode = mergeJsCode(currentCode, code);
+          break;
       }
-    } catch (error) {
-      console.error('Error refactoring code:', error);
-      // Fallback to merged code if AI refactoring fails
+
+      // Step 4: Apply the merged code immediately
       switch (targetLanguage) {
         case 'html':
           setHtmlCode(mergedCode);
@@ -394,19 +358,96 @@ Return only valid refactored ${targetLanguage} code with NO additional text or e
           setJsCode(mergedCode);
           break;
       }
-    }
-    
-    // Switch to the appropriate tab
-    switch (targetLanguage) {
-      case 'html':
-        codeEditorRef.current?.switchToTab('html');
-        break;
-      case 'css':
-        codeEditorRef.current?.switchToTab('css');
-        break;
-      case 'javascript':
-        codeEditorRef.current?.switchToTab('js');
-        break;
+
+      // Optional: Try to refactor for better quality, but don't block the immediate application
+      setTimeout(async () => {
+        try {
+          const refactorPrompt = `Please review this ${targetLanguage} code and improve it if needed. Return only the code without explanations:
+
+\`\`\`${targetLanguage}
+${mergedCode}
+\`\`\`
+
+Requirements:
+- Fix any syntax errors
+- Ensure proper formatting and indentation
+- Make sure the code is functional and valid
+- Preserve all existing functionality
+- Do not remove or truncate any working code
+
+Return only valid ${targetLanguage} code with NO additional text or explanations:`;
+
+          const aiResponse = await fetch(API_CONFIG.AI_WEBHOOK_URL, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              chatInput: refactorPrompt
+            }),
+          });
+
+          if (aiResponse.ok) {
+            const data = await aiResponse.json();
+            let refactoredCode = data.data || data.output || data.response || data.message || mergedCode;
+            
+            // Clean up AI response to extract just the code
+            if (typeof refactoredCode === 'string') {
+              // Remove markdown code blocks if present
+              refactoredCode = refactoredCode.replace(/```[\w]*\n/g, '').replace(/```/g, '').trim();
+              
+              // For JavaScript, look for common starting patterns
+              if (targetLanguage === 'javascript') {
+                const jsCodeMatch = refactoredCode.match(/(document\.|window\.|function\s|var\s|let\s|const\s|class\s|\/\*|\/\/|[a-zA-Z_$][a-zA-Z0-9_$]*\s*[=\(]|if\s*\(|for\s*\(|while\s*\(|switch\s*\(|try\s*\{)[\s\S]*/);
+                if (jsCodeMatch) {
+                  refactoredCode = jsCodeMatch[0];
+                }
+              } else {
+                // Remove any explanatory text for HTML/CSS
+                const codeBlockMatch = refactoredCode.match(new RegExp(`(<!DOCTYPE|<html|<head|<body|\\.|#|function|var|let|const|/\\*).*`, 's'));
+                if (codeBlockMatch) {
+                  refactoredCode = codeBlockMatch[0];
+                }
+              }
+              
+              // Only apply refactored code if it's significantly different and better
+              if (refactoredCode && refactoredCode.length > mergedCode.length * 0.8) {
+                switch (targetLanguage) {
+                  case 'html':
+                    setHtmlCode(refactoredCode);
+                    break;
+                  case 'css':
+                    setCssCode(refactoredCode);
+                    break;
+                  case 'javascript':
+                    setJsCode(refactoredCode);
+                    break;
+                }
+              }
+            }
+          }
+        } catch (error) {
+          console.error('Error refactoring code:', error);
+          // Keep the merged code that was already applied
+        }
+      }, 100); // Small delay to ensure the merged code is visible first
+
+    } catch (error) {
+      console.error('Error merging code:', error);
+      
+      // Fallback: just append the suggestion to existing code
+      const fallbackCode = currentCode + '\n\n' + code;
+      switch (targetLanguage) {
+        case 'html':
+          setHtmlCode(fallbackCode);
+          break;
+        case 'css':
+          setCssCode(fallbackCode);
+          break;
+        case 'javascript':
+          setJsCode(fallbackCode);
+          break;
+      }
     }
   };
 
