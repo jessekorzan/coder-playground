@@ -314,8 +314,10 @@ Requirements:
 - Fix any syntax errors
 - Ensure proper formatting and indentation
 - Make sure the code is functional and valid
+- Preserve all existing statements, especially document and window references
+- Do not remove or truncate any working code
 
-Return only valid refactored ${targetLanguage} code:`;
+Return only valid refactored ${targetLanguage} code with NO additional text or explanations:`;
 
       const aiResponse = await fetch('https://n8n-service-u37x.onrender.com/webhook/chat', {
         method: 'POST',
@@ -336,10 +338,18 @@ Return only valid refactored ${targetLanguage} code:`;
           // Remove markdown code blocks if present
           refactoredCode = refactoredCode.replace(/```[\w]*\n/g, '').replace(/```/g, '').trim();
           
-          // Remove any explanatory text before or after code
-          const codeBlockMatch = refactoredCode.match(new RegExp(`(<!DOCTYPE|<html|<head|<body|\\.|#|function|var|let|const|/\\*).*`, 's'));
-          if (codeBlockMatch) {
-            refactoredCode = codeBlockMatch[0];
+          // For JavaScript, look for common starting patterns including document
+          if (targetLanguage === 'javascript') {
+            const jsCodeMatch = refactoredCode.match(/(document\.|window\.|function\s|var\s|let\s|const\s|class\s|\/\*|\/\/|[a-zA-Z_$][a-zA-Z0-9_$]*\s*[=\(]|if\s*\(|for\s*\(|while\s*\(|switch\s*\(|try\s*\{)[\s\S]*/);
+            if (jsCodeMatch) {
+              refactoredCode = jsCodeMatch[0];
+            }
+          } else {
+            // Remove any explanatory text before or after code for HTML/CSS
+            const codeBlockMatch = refactoredCode.match(new RegExp(`(<!DOCTYPE|<html|<head|<body|\\.|#|function|var|let|const|/\\*).*`, 's'));
+            if (codeBlockMatch) {
+              refactoredCode = codeBlockMatch[0];
+            }
           }
         }
         
