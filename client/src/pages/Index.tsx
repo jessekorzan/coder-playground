@@ -339,7 +339,7 @@ const Index = () => {
         mergedCode = code;
       } else {
         // Use AI to intelligently merge the existing code with the suggestion
-        const mergePrompt = `You are reviewing existing ${targetLanguage} code and a new suggestion that needs to be merged intelligently.
+        const mergePrompt = `You are an expert code reviewer merging existing ${targetLanguage} code with a new suggestion. Your goal is to create the most efficient, functional code possible.
 
 EXISTING CODE:
 \`\`\`${targetLanguage}
@@ -351,15 +351,23 @@ NEW SUGGESTION TO APPLY:
 ${code}
 \`\`\`
 
-Please intelligently merge these together by:
-1. Reviewing the existing code structure and functionality
-2. Determining how best to integrate the new suggestion
-3. Avoiding duplicate selectors/functions/elements
-4. Preserving existing functionality while adding new features
-5. Ensuring proper syntax and formatting
-6. Making the code clean and well-organized
+MERGE REQUIREMENTS:
+1. **Remove ALL duplicates**: Eliminate duplicate selectors, functions, variables, or elements
+2. **Consolidate redundant code**: Merge similar functionality into single, efficient implementations
+3. **Optimize structure**: Organize code logically with proper hierarchy
+4. **Preserve functionality**: Ensure all existing features continue to work
+5. **Integrate new features**: Seamlessly incorporate the suggestion's functionality
+6. **Clean syntax**: Use proper formatting, consistent naming, and best practices
+7. **Efficient result**: The final code should be cleaner and more efficient than both inputs
 
-Return ONLY the complete merged ${targetLanguage} code with no explanations, markdown, or additional text:`;
+CRITICAL: 
+- If both codes have the same function/selector/element, keep only ONE optimized version
+- Combine overlapping CSS rules into single selectors where possible
+- Merge similar JavaScript functions or consolidate event handlers
+- Remove commented-out code and unused declarations
+- Ensure no conflicting or redundant implementations exist
+
+Return ONLY the complete, optimized merged ${targetLanguage} code with no explanations, markdown, or additional text:`;
 
         const aiResponse = await fetch(API_CONFIG.AI_WEBHOOK_URL, {
           method: 'POST',
