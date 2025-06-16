@@ -304,20 +304,7 @@ const Index = () => {
         targetLanguage = 'html';
     }
 
-    // Step 1: Clear the current view
-    switch (targetLanguage) {
-      case 'html':
-        setHtmlCode('');
-        break;
-      case 'css':
-        setCssCode('');
-        break;
-      case 'javascript':
-        setJsCode('');
-        break;
-    }
-
-    // Step 2: Switch to the appropriate tab immediately
+    // Step 1: Switch to the appropriate tab immediately
     switch (targetLanguage) {
       case 'html':
         codeEditorRef.current?.switchToTab('html');
@@ -329,6 +316,39 @@ const Index = () => {
         codeEditorRef.current?.switchToTab('js');
         break;
     }
+
+    // Step 2: Set fun loading placeholder text
+    const loadingMessages = [
+      '// 🤖 AI is analyzing your code...',
+      '// 🔍 Scanning for duplicates and conflicts...',
+      '// 🧠 Thinking about the best merge strategy...',
+      '// ⚡ Optimizing code structure...',
+      '// 🎨 Cleaning up and organizing...',
+      '// 🚀 Almost done! Finalizing the merge...'
+    ];
+
+    let messageIndex = 0;
+    const updatePlaceholder = () => {
+      const message = loadingMessages[messageIndex % loadingMessages.length];
+      switch (targetLanguage) {
+        case 'html':
+          setHtmlCode(`<!-- ${message.replace('// ', '')} -->`);
+          break;
+        case 'css':
+          setCssCode(`/* ${message.replace('// ', '')} */`);
+          break;
+        case 'javascript':
+          setJsCode(message);
+          break;
+      }
+      messageIndex++;
+    };
+
+    // Start with first message
+    updatePlaceholder();
+    
+    // Update placeholder every 800ms while processing
+    const placeholderInterval = setInterval(updatePlaceholder, 800);
 
     // Step 3: Use LLM for intelligent merging
     let mergedCode = '';
@@ -430,7 +450,8 @@ Return ONLY the complete, optimized merged ${targetLanguage} code with no explan
         }
       }
 
-      // Step 4: Apply the merged code immediately
+      // Step 4: Clear the loading interval and apply the merged code
+      clearInterval(placeholderInterval);
       switch (targetLanguage) {
         case 'html':
           setHtmlCode(mergedCode);
@@ -444,6 +465,8 @@ Return ONLY the complete, optimized merged ${targetLanguage} code with no explan
       }
 
     } catch (error) {
+      // Clear interval on error too
+      clearInterval(placeholderInterval);
       console.error('Error with AI merging:', error);
       
       // Fallback to basic merging strategies
