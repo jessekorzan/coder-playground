@@ -280,7 +280,7 @@ const Index = () => {
     return existingJs + '\n\n// Applied suggestion\n' + processedNewJs;
   };
 
-  // Apply code suggestion from unified AI Assistant with intelligent merging
+  // Apply code suggestion from unified AI Assistant with intelligent LLM-powered merging
   const handleApplyCode = async (code: string, language: string): Promise<void> => {
     let targetLanguage = language.toLowerCase();
     if (targetLanguage === 'js') {
@@ -330,20 +330,96 @@ const Index = () => {
         break;
     }
 
-    // Step 3: Determine best merge strategy and create merged code
+    // Step 3: Use LLM for intelligent merging
     let mergedCode = '';
     
     try {
-      switch (targetLanguage) {
-        case 'html':
-          mergedCode = mergeHtmlCode(currentCode, code);
-          break;
-        case 'css':
-          mergedCode = mergeCssCode(currentCode, code);
-          break;
-        case 'javascript':
-          mergedCode = mergeJsCode(currentCode, code);
-          break;
+      if (!currentCode.trim()) {
+        // No existing code, just use the new suggestion
+        mergedCode = code;
+      } else {
+        // Use AI to intelligently merge the existing code with the suggestion
+        const mergePrompt = `You are reviewing existing ${targetLanguage} code and a new suggestion that needs to be merged intelligently.
+
+EXISTING CODE:
+\`\`\`${targetLanguage}
+${currentCode}
+\`\`\`
+
+NEW SUGGESTION TO APPLY:
+\`\`\`${targetLanguage}
+${code}
+\`\`\`
+
+Please intelligently merge these together by:
+1. Reviewing the existing code structure and functionality
+2. Determining how best to integrate the new suggestion
+3. Avoiding duplicate selectors/functions/elements
+4. Preserving existing functionality while adding new features
+5. Ensuring proper syntax and formatting
+6. Making the code clean and well-organized
+
+Return ONLY the complete merged ${targetLanguage} code with no explanations, markdown, or additional text:`;
+
+        const aiResponse = await fetch(API_CONFIG.AI_WEBHOOK_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            chatInput: mergePrompt
+          }),
+        });
+
+        if (aiResponse.ok) {
+          const data = await aiResponse.json();
+          let aiMergedCode = data.data || data.output || data.response || data.message;
+          
+          if (typeof aiMergedCode === 'string' && aiMergedCode.trim()) {
+            // Clean up AI response to extract just the code
+            aiMergedCode = aiMergedCode.replace(/```[\w]*\n/g, '').replace(/```/g, '').trim();
+            
+            // Remove any leading/trailing explanatory text
+            const lines = aiMergedCode.split('\n');
+            let startIndex = 0;
+            let endIndex = lines.length - 1;
+            
+            // Find where actual code starts
+            for (let i = 0; i < lines.length; i++) {
+              const line = lines[i].trim();
+              if (targetLanguage === 'html' && (line.startsWith('<') || line.startsWith('<!DOCTYPE'))) {
+                startIndex = i;
+                break;
+              } else if (targetLanguage === 'css' && (line.includes('{') || line.includes(':') || line.startsWith('/*') || /^[a-zA-Z#.]/.test(line))) {
+                startIndex = i;
+                break;
+              } else if (targetLanguage === 'javascript' && (line.startsWith('//') || line.startsWith('/*') || line.includes('function') || line.includes('const') || line.includes('let') || line.includes('var') || line.includes('document') || line.includes('window') || /^[a-zA-Z_$]/.test(line))) {
+                startIndex = i;
+                break;
+              }
+            }
+            
+            // Find where actual code ends
+            for (let i = lines.length - 1; i >= 0; i--) {
+              const line = lines[i].trim();
+              if (line && !line.startsWith('Note:') && !line.startsWith('This') && !line.startsWith('The')) {
+                endIndex = i;
+                break;
+              }
+            }
+            
+            mergedCode = lines.slice(startIndex, endIndex + 1).join('\n').trim();
+            
+            // Fallback if extraction failed
+            if (!mergedCode || mergedCode.length < Math.max(currentCode.length, code.length) * 0.5) {
+              throw new Error('AI merge result too short, using fallback');
+            }
+          } else {
+            throw new Error('Invalid AI response');
+          }
+        } else {
+          throw new Error('AI request failed');
+        }
       }
 
       // Step 4: Apply the merged code immediately
@@ -359,94 +435,50 @@ const Index = () => {
           break;
       }
 
-      // Optional: Try to refactor for better quality, but don't block the immediate application
-      setTimeout(async () => {
-        try {
-          const refactorPrompt = `Please review this ${targetLanguage} code and improve it if needed. Return only the code without explanations:
-
-\`\`\`${targetLanguage}
-${mergedCode}
-\`\`\`
-
-Requirements:
-- Fix any syntax errors
-- Ensure proper formatting and indentation
-- Make sure the code is functional and valid
-- Preserve all existing functionality
-- Do not remove or truncate any working code
-
-Return only valid ${targetLanguage} code with NO additional text or explanations:`;
-
-          const aiResponse = await fetch(API_CONFIG.AI_WEBHOOK_URL, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              chatInput: refactorPrompt
-            }),
-          });
-
-          if (aiResponse.ok) {
-            const data = await aiResponse.json();
-            let refactoredCode = data.data || data.output || data.response || data.message || mergedCode;
-            
-            // Clean up AI response to extract just the code
-            if (typeof refactoredCode === 'string') {
-              // Remove markdown code blocks if present
-              refactoredCode = refactoredCode.replace(/```[\w]*\n/g, '').replace(/```/g, '').trim();
-              
-              // For JavaScript, look for common starting patterns
-              if (targetLanguage === 'javascript') {
-                const jsCodeMatch = refactoredCode.match(/(document\.|window\.|function\s|var\s|let\s|const\s|class\s|\/\*|\/\/|[a-zA-Z_$][a-zA-Z0-9_$]*\s*[=\(]|if\s*\(|for\s*\(|while\s*\(|switch\s*\(|try\s*\{)[\s\S]*/);
-                if (jsCodeMatch) {
-                  refactoredCode = jsCodeMatch[0];
-                }
-              } else {
-                // Remove any explanatory text for HTML/CSS
-                const codeBlockMatch = refactoredCode.match(new RegExp(`(<!DOCTYPE|<html|<head|<body|\\.|#|function|var|let|const|/\\*).*`, 's'));
-                if (codeBlockMatch) {
-                  refactoredCode = codeBlockMatch[0];
-                }
-              }
-              
-              // Only apply refactored code if it's significantly different and better
-              if (refactoredCode && refactoredCode.length > mergedCode.length * 0.8) {
-                switch (targetLanguage) {
-                  case 'html':
-                    setHtmlCode(refactoredCode);
-                    break;
-                  case 'css':
-                    setCssCode(refactoredCode);
-                    break;
-                  case 'javascript':
-                    setJsCode(refactoredCode);
-                    break;
-                }
-              }
-            }
-          }
-        } catch (error) {
-          console.error('Error refactoring code:', error);
-          // Keep the merged code that was already applied
-        }
-      }, 100); // Small delay to ensure the merged code is visible first
-
     } catch (error) {
-      console.error('Error merging code:', error);
+      console.error('Error with AI merging:', error);
       
-      // Fallback: just append the suggestion to existing code
-      const fallbackCode = currentCode + '\n\n' + code;
-      switch (targetLanguage) {
-        case 'html':
-          setHtmlCode(fallbackCode);
-          break;
-        case 'css':
-          setCssCode(fallbackCode);
-          break;
-        case 'javascript':
-          setJsCode(fallbackCode);
-          break;
+      // Fallback to basic merging strategies
+      try {
+        switch (targetLanguage) {
+          case 'html':
+            mergedCode = mergeHtmlCode(currentCode, code);
+            break;
+          case 'css':
+            mergedCode = mergeCssCode(currentCode, code);
+            break;
+          case 'javascript':
+            mergedCode = mergeJsCode(currentCode, code);
+            break;
+        }
+
+        switch (targetLanguage) {
+          case 'html':
+            setHtmlCode(mergedCode);
+            break;
+          case 'css':
+            setCssCode(mergedCode);
+            break;
+          case 'javascript':
+            setJsCode(mergedCode);
+            break;
+        }
+      } catch (fallbackError) {
+        console.error('Error with fallback merging:', fallbackError);
+        
+        // Ultimate fallback: just append the suggestion to existing code
+        const ultimateFallback = currentCode + '\n\n' + code;
+        switch (targetLanguage) {
+          case 'html':
+            setHtmlCode(ultimateFallback);
+            break;
+          case 'css':
+            setCssCode(ultimateFallback);
+            break;
+          case 'javascript':
+            setJsCode(ultimateFallback);
+            break;
+        }
       }
     }
   };
