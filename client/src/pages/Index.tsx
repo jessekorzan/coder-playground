@@ -241,33 +241,6 @@ const Index = () => {
       return newHtml;
     }
     
-    // If new HTML is very similar to existing (likely a suggestion), replace instead of append
-    const existingClean = existingHtml.replace(/\s+/g, ' ').trim();
-    const newClean = newHtml.replace(/\s+/g, ' ').trim();
-    
-    // If new content is contained within existing content, it's likely a duplicate
-    if (existingClean.includes(newClean)) {
-      return existingHtml;
-    }
-    
-    // If existing content is contained within new content, replace with new
-    if (newClean.includes(existingClean)) {
-      return newHtml;
-    }
-    
-    // Check for similar tag structures to avoid duplication
-    const existingTags = existingHtml.match(/<\w+[^>]*>/g) || [];
-    const newTags = newHtml.match(/<\w+[^>]*>/g) || [];
-    
-    // If more than 50% of tags overlap, replace instead of merge
-    const commonTags = existingTags.filter(tag => newTags.some(newTag => 
-      newTag.split(/\s+/)[0] === tag.split(/\s+/)[0]
-    ));
-    
-    if (commonTags.length > Math.min(existingTags.length, newTags.length) * 0.5) {
-      return newHtml;
-    }
-    
     // If existing HTML has body tag, insert new content inside body
     const bodyMatch = existingHtml.match(/<body[^>]*>([\s\S]*)<\/body>/i);
     if (bodyMatch) {
