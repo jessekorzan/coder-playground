@@ -51,7 +51,7 @@
 .markdown-content > pre {
   @apply bg-gray-100 dark:bg-gray-800 p-2 rounded text-xs mb-2 max-w-full;
 }
-.markdown-content pre code {
+.markdown-content code[class*='text-green-400'] {
   @apply bg-transparent p-0;
 }
 
