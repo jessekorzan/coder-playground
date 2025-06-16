@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Eye, Download, Moon, Sun, Bot, Monitor } from 'lucide-react';
 import { generateZip } from '@/utils/zipUtils';
+import { API_CONFIG } from '@/config/constants';
 
 const Index = () => {
   const [htmlCode, setHtmlCode] = useState('');
@@ -319,7 +320,7 @@ Requirements:
 
 Return only valid refactored ${targetLanguage} code with NO additional text or explanations:`;
 
-      const aiResponse = await fetch('https://n8n-service-u37x.onrender.com/webhook/chat', {
+      const aiResponse = await fetch(API_CONFIG.AI_WEBHOOK_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

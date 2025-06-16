@@ -5,6 +5,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Send, Bot, User, Lightbulb, Copy, Plus, Loader2 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { API_CONFIG } from '@/config/constants';
 
 interface Message {
   id: string;
@@ -130,7 +131,7 @@ Important Instructions:
 - Respond with ONLY the formatted recommendations. Do NOT add anything else.`;
       }
 
-      const aiResponse = await fetch('https://n8n-service-u37x.onrender.com/webhook/chat', {
+      const aiResponse = await fetch(API_CONFIG.webhookUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -208,7 +209,7 @@ Important Instructions:
     setIsLoading(true);
 
     try {
-      const response = await fetch('https://n8n-service-u37x.onrender.com/webhook/chat', {
+      const response = await fetch(API_CONFIG.webhookUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
