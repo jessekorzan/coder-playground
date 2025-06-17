@@ -649,7 +649,7 @@ document.getElementById('my-button').addEventListener('click', function() {
         <div className="w-full px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              <h1 className="text-xl font-medium text-gray-900 dark:text-white">Code Helper</h1>
+              <h1 className="text-xl font-medium text-gray-900 dark:text-white">Coder</h1>
               <span className="ml-4 text-sm text-gray-500 dark:text-gray-400">Your coding workspace</span>
             </div>
             <div className="flex items-center space-x-3">
