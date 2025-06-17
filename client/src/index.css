@@ -36,7 +36,7 @@
 }
 
 .markdown-content code {
-  @apply bg-gray-800 dark:bg-gray-800 px-1 py-0.5 rounded text-xs;
+  @apply bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-xs;
 }
 
 .markdown-content pre {
