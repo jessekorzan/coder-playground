@@ -1,36 +1,28 @@
-# 1) Base image
-FROM node:20-alpine AS base
+# 1) Build stage
+FROM node:20-alpine AS build
 WORKDIR /app
 
-# Copy only root manifests and install deps
+# 1a) Install all deps
 COPY package*.json ./
 RUN npm ci
 
-# 2) Build the React client
-FROM base AS build-client
-WORKDIR /app
-# build script should know to build client via your root scripts
-RUN npm run build:client
+# 1b) Copy your entire monorepo and run the build
+COPY . .
+# This runs: `vite build` (client) + `esbuild server/index.ts … --outdir=dist`
+RUN npm run build
 
-# 3) Build (or transpile) the server, if needed
-#    If you have a root script to build server (e.g. tsc), run it here.
-FROM base AS build-server
-WORKDIR /app
-RUN npm run build:server
-
-# 4) Final image
+# 2) Production image
 FROM node:20-alpine AS runner
 WORKDIR /app
 
-# Copy production deps only
+# 2a) Install only prod deps
 COPY package*.json ./
 RUN npm ci --only=production
 
-# Copy in built client + server
-COPY --from=build-client /app/client/dist ./public
-COPY --from=build-server /app/server/dist ./server
+# 2b) Copy the built output
+COPY --from=build /app/dist ./dist
 
-# Expose & run
+# 2c) Expose your port and launch the server
 ENV PORT=5000
 EXPOSE 5000
-CMD ["node", "server/index.js"]
+CMD ["node", "dist/index.js"]
