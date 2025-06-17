@@ -17,7 +17,7 @@ WORKDIR /app
 
 # 2a) Install only prod deps
 COPY package*.json ./
-RUN npm ci --only=production
+RUN npm ci
 
 # 2b) Copy the built output
 COPY --from=build /app/dist ./dist
