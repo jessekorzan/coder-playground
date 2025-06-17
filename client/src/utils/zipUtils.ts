@@ -8,7 +8,7 @@ export const generateZip = async (htmlCode: string, cssCode: string, jsCode: str
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Code Cadet Project</title>
+    <title>My Coder Project</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -21,7 +21,7 @@ export const generateZip = async (htmlCode: string, cssCode: string, jsCode: str
   const zip = new JSZip();
   
   // Create the codecadet_page folder
-  const folder = zip.folder("codecadet_page");
+  const folder = zip.folder("coder_page");
   
   if (folder) {
     // Add files to the folder
@@ -38,14 +38,14 @@ export const generateZip = async (htmlCode: string, cssCode: string, jsCode: str
     const url = URL.createObjectURL(content);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'codecadet_project.zip';
+    a.download = 'coder_project.zip';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
     
     // Show success message
-    alert('🎉 Your Code Cadet project has been downloaded as codecadet_project.zip!');
+    alert('🎉 Your Coder project has been downloaded as coder_project.zip!');
   } catch (error) {
     console.error('Error creating ZIP file:', error);
     alert('Sorry, there was an error creating your ZIP file. Please try again.');

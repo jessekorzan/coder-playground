@@ -48,7 +48,7 @@ export const AiAssistant = ({
     {
       id: '1',
       type: 'assistant',
-      content: `# Hi there, Code Cadet! 👋
+      content: `# Hi there, coder! 👋
 
 I'm your AI learning assistant. I'm here to help you learn **HTML**, **CSS**, and **JavaScript**!
 

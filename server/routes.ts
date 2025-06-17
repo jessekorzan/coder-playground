@@ -89,7 +89,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Code Cadet Preview</title>
+    <title>Coder Preview</title>
     <style>
         ${session.cssCode}
     </style>
