@@ -15,14 +15,16 @@ RUN npm run build
 FROM node:20-alpine AS runner
 WORKDIR /app
 
-# 2a) Install only prod deps
 COPY package*.json ./
 RUN npm ci
 
-# 2b) Copy the built output
-COPY --from=build /app/dist ./dist
+# copy in the built output…
+COPY --from=build /app/client/dist ./public
++# …and also copy the original client folder so /app/client/index.html exists
++COPY client ./client
 
-# 2c) Expose your port and launch the server
 ENV PORT=5000
 EXPOSE 5000
 CMD ["node", "dist/index.js"]
+
+
