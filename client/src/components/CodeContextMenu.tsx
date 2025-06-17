@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Bug, HelpCircle, Lightbulb, Sparkles } from 'lucide-react';
 
 interface CodeContextMenuProps {

@@ -1,5 +1,5 @@
 
-import { useState, useRef, useImperativeHandle, forwardRef } from 'react';
+import React, { useState, useRef, useImperativeHandle, forwardRef } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { FileCode, Palette, Zap } from 'lucide-react';
 import { SyntaxHighlighter } from './SyntaxHighlighter';
