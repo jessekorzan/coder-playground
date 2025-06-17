@@ -550,7 +550,7 @@ Return ONLY the complete, optimized merged ${targetLanguage} code with no explan
     if (savedHtml) {
       setHtmlCode(savedHtml);
     } else {
-      const defaultHtml = `<h1>Welcome to Code Cadet!</h1>
+      const defaultHtml = `<h1>Welcome to Code Helpe with AI!</h1>
 <p>Start building your first webpage here. Try changing this text or adding new elements!</p>
 
 <button id="my-button">Click me!</button>
@@ -572,6 +572,7 @@ body {
   color: white;
   padding: 20px;
   margin: 0;
+  min-height: 100dvh;
 }
 
 h1 {
