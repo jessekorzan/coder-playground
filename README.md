@@ -1,7 +1,7 @@
 
-# Code Cadet 🚀
+# Coder 🚀
 
-A modern, AI-powered code editor designed for learning web development. Code Cadet provides an intuitive environment where beginners can write HTML, CSS, and JavaScript with real-time preview and intelligent AI assistance.
+A modern, AI-powered code editor designed for learning web development. Coder provides an intuitive environment where beginners can write HTML, CSS, and JavaScript with real-time preview and intelligent AI assistance.
 
 ## Features
 
@@ -31,14 +31,14 @@ A modern, AI-powered code editor designed for learning web development. Code Cad
 ### Prerequisites
 
 - Node.js 20 or higher
-- npm or yarn package manager
+- npm package manager
 
 ### Installation
 
 1. Clone the repository:
 ```bash
 git clone <your-repo-url>
-cd code-cadet
+cd coder
 ```
 
 2. Install dependencies:
@@ -69,11 +69,13 @@ npm run dev
 │   │   ├── pages/          # Page components
 │   │   ├── hooks/          # Custom React hooks
 │   │   ├── lib/            # Utility libraries
-│   │   └── utils/          # Helper functions
+│   │   ├── utils/          # Helper functions
+│   │   └── config/         # Configuration constants
 ├── server/                 # Backend Express server
 │   ├── index.ts           # Server entry point
 │   ├── routes.ts          # API routes
-│   └── storage.ts         # Session storage
+│   ├── storage.ts         # Session storage
+│   └── vite.ts            # Vite middleware
 └── shared/                # Shared TypeScript types
 ```
 
@@ -115,7 +117,7 @@ This project is optimized for deployment on Replit:
 
 The application works out of the box, but you can customize:
 
-- **AI Webhook URL**: Update the AI service endpoint in `AiAssistant.tsx`
+- **AI Webhook URL**: Update the AI service endpoint in `client/src/config/constants.ts`
 - **Port Configuration**: Default is 5000 (optimal for Replit)
 - **Storage**: Uses in-memory session storage (suitable for development)
 
@@ -158,4 +160,4 @@ For questions or issues:
 
 **Happy Coding! 🎉**
 
-Start your web development journey with Code Cadet - where learning meets intelligent assistance.
+Start your web development journey with Coder - where learning meets intelligent assistance.
