@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { CodeEditor, CodeEditorRef } from '@/components/CodeEditor';
 import { AiAssistant } from '@/components/AiAssistant';
 import { Button } from '@/components/ui/button';

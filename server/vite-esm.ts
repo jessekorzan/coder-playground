@@ -23,9 +23,20 @@ const viteConfig = {
   build: {
     outDir: path.resolve(__dirname, "../dist/public"),
     emptyOutDir: true,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+          ui: ['lucide-react'],
+        },
+      },
+    },
   },
   define: {
     'process.env': {},
+  },
+  optimizeDeps: {
+    include: ['react', 'react-dom'],
   },
 };
 
