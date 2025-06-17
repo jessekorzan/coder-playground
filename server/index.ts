@@ -1,3 +1,13 @@
+// Set up ES module compatibility first, before any other imports
+import { fileURLToPath } from "url";
+import path from "path";
+
+// ES module compatible __dirname - set globally before other imports
+const __filename = fileURLToPath(import.meta.url);
+const currentDir = path.dirname(__filename);
+globalThis.__dirname = path.resolve(currentDir, "..");
+
+// Now import other modules
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
