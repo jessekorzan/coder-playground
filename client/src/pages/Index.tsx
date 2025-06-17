@@ -650,7 +650,7 @@ document.getElementById('my-button').addEventListener('click', function() {
         <div className="w-full px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              <h1 className="text-xl font-medium text-gray-900 dark:text-white">Coder</h1>
+              <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Coder</h1>
               <span className="ml-4 text-sm text-gray-500 dark:text-gray-400">Your coding workspace</span>
             </div>
             <div className="flex items-center space-x-3">
@@ -664,7 +664,7 @@ document.getElementById('my-button').addEventListener('click', function() {
               </Button>
               <Button
                 onClick={openPreview}
-                className="bg-gray-900 hover:bg-gray-800 text-white text-sm font-medium px-4 py-2 rounded-lg dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100"
+                className="bg-gray-900 hover:bg-gray-800 text-white text-sm font-medium px-4 py-2 rounded-lg dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100 "
               >
                 <Eye className="w-4 h-4 mr-2" />
                 Live Preview
