@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { CodeEditor, CodeEditorRef } from '@/components/CodeEditor';
 import { AiAssistant } from '@/components/AiAssistant';
@@ -35,11 +34,11 @@ const Index = () => {
   const handleMouseDown = (e: React.MouseEvent) => {
     e.preventDefault();
     setIsDragging(true);
-    
+
     const handleMouseMove = (e: MouseEvent) => {
       const containerWidth = window.innerWidth;
       const newLeftWidth = (e.clientX / containerWidth) * 100;
-      
+
       // Constrain between 30% and 80%
       const clampedWidth = Math.min(Math.max(newLeftWidth, 30), 80);
       setLeftPanelWidth(clampedWidth);
@@ -165,18 +164,18 @@ const Index = () => {
   // Intelligently merge CSS code
   const mergeCssCode = (existingCss: string, newCss: string): string => {
     if (!existingCss.trim()) return newCss;
-    
+
     // Parse existing CSS to extract selectors and rules
     const existingSelectors = new Map<string, string>();
     const selectorRegex = /([^{]+)\s*\{([^}]*)\}/g;
     let match;
-    
+
     while ((match = selectorRegex.exec(existingCss)) !== null) {
       const selector = match[1].trim();
       const rules = match[2].trim();
       existingSelectors.set(selector, rules);
     }
-    
+
     // Parse new CSS
     const newSelectors = new Map<string, string>();
     while ((match = selectorRegex.exec(newCss)) !== null) {
@@ -184,7 +183,7 @@ const Index = () => {
       const rules = match[2].trim();
       newSelectors.set(selector, rules);
     }
-    
+
     // Merge selectors
     newSelectors.forEach((newRules, selector) => {
       if (existingSelectors.has(selector)) {
@@ -197,50 +196,50 @@ const Index = () => {
         existingSelectors.set(selector, newRules);
       }
     });
-    
+
     // Rebuild CSS
     let mergedCss = '';
     existingSelectors.forEach((rules, selector) => {
       mergedCss += `${selector} {\n  ${rules.split(';').filter((r: string) => r.trim()).join(';\n  ')};\n}\n\n`;
     });
-    
+
     return mergedCss.trim();
   };
-  
+
   // Merge CSS rules, preferring new values for conflicting properties
   const mergecssRules = (existingRules: string, newRules: string): string => {
     const existing: Record<string, string> = {};
     const newProps: Record<string, string> = {};
-    
+
     // Parse existing rules
     existingRules.split(';').forEach(rule => {
       const [prop, value] = rule.split(':').map(s => s.trim());
       if (prop && value) existing[prop] = value;
     });
-    
+
     // Parse new rules
     newRules.split(';').forEach(rule => {
       const [prop, value] = rule.split(':').map(s => s.trim());
       if (prop && value) newProps[prop] = value;
     });
-    
+
     // Merge (new props override existing)
     const merged = { ...existing, ...newProps };
-    
+
     return Object.entries(merged)
       .map(([prop, value]) => `${prop}: ${value}`)
       .join('; ');
   };
-  
+
   // Intelligently merge HTML code
   const mergeHtmlCode = (existingHtml: string, newHtml: string): string => {
     if (!existingHtml.trim()) return newHtml;
-    
+
     // If new HTML contains complete document structure, replace
     if (newHtml.includes('<html>') || newHtml.includes('<!DOCTYPE')) {
       return newHtml;
     }
-    
+
     // If existing HTML has body tag, insert new content inside body
     const bodyMatch = existingHtml.match(/<body[^>]*>([\s\S]*)<\/body>/i);
     if (bodyMatch) {
@@ -248,24 +247,24 @@ const Index = () => {
       const newBodyContent = bodyContent + '\n\n' + newHtml;
       return existingHtml.replace(/<body[^>]*>[\s\S]*<\/body>/i, `<body>\n${newBodyContent}\n</body>`);
     }
-    
+
     // Otherwise append to existing content
     return existingHtml + '\n\n' + newHtml;
   };
-  
+
   // Intelligently merge JavaScript code
   const mergeJsCode = (existingJs: string, newJs: string): string => {
     if (!existingJs.trim()) return newJs;
-    
+
     // Check for function conflicts and variable redeclarations
     const functionRegex = /function\s+(\w+)\s*\(/g;
     const existingFunctions = new Set<string>();
     let match;
-    
+
     while ((match = functionRegex.exec(existingJs)) !== null) {
       existingFunctions.add(match[1]);
     }
-    
+
     // Check if new code conflicts with existing functions
     let processedNewJs = newJs;
     while ((match = functionRegex.exec(newJs)) !== null) {
@@ -276,7 +275,7 @@ const Index = () => {
         processedNewJs = processedNewJs.replace(new RegExp(`\\b${funcName}\\b`, 'g'), newName);
       }
     }
-    
+
     return existingJs + '\n\n// Applied suggestion\n' + processedNewJs;
   };
 
@@ -286,7 +285,7 @@ const Index = () => {
     if (targetLanguage === 'js') {
       targetLanguage = 'javascript';
     }
-    
+
     // Get current code based on target language
     let currentCode = '';
     switch (targetLanguage) {
@@ -346,13 +345,13 @@ const Index = () => {
 
     // Start with first message
     updatePlaceholder();
-    
+
     // Update placeholder every 800ms while processing
     const placeholderInterval = setInterval(updatePlaceholder, 800);
 
     // Step 3: Use LLM for intelligent merging
     let mergedCode = '';
-    
+
     try {
       if (!currentCode.trim()) {
         // No existing code, just use the new suggestion
@@ -402,16 +401,16 @@ Return ONLY the complete, optimized merged ${targetLanguage} code with no explan
         if (aiResponse.ok) {
           const data = await aiResponse.json();
           let aiMergedCode = data.data || data.output || data.response || data.message;
-          
+
           if (typeof aiMergedCode === 'string' && aiMergedCode.trim()) {
             // Clean up AI response to extract just the code
             aiMergedCode = aiMergedCode.replace(/```[\w]*\n/g, '').replace(/```/g, '').trim();
-            
+
             // Remove any leading/trailing explanatory text
             const lines = aiMergedCode.split('\n');
             let startIndex = 0;
             let endIndex = lines.length - 1;
-            
+
             // Find where actual code starts
             for (let i = 0; i < lines.length; i++) {
               const line = lines[i].trim();
@@ -426,7 +425,7 @@ Return ONLY the complete, optimized merged ${targetLanguage} code with no explan
                 break;
               }
             }
-            
+
             // Find where actual code ends
             for (let i = lines.length - 1; i >= 0; i--) {
               const line = lines[i].trim();
@@ -435,9 +434,9 @@ Return ONLY the complete, optimized merged ${targetLanguage} code with no explan
                 break;
               }
             }
-            
+
             mergedCode = lines.slice(startIndex, endIndex + 1).join('\n').trim();
-            
+
             // Fallback if extraction failed
             if (!mergedCode || mergedCode.length < Math.max(currentCode.length, code.length) * 0.5) {
               throw new Error('AI merge result too short, using fallback');
@@ -468,7 +467,7 @@ Return ONLY the complete, optimized merged ${targetLanguage} code with no explan
       // Clear interval on error too
       clearInterval(placeholderInterval);
       console.error('Error with AI merging:', error);
-      
+
       // Fallback to basic merging strategies
       try {
         switch (targetLanguage) {
@@ -496,7 +495,7 @@ Return ONLY the complete, optimized merged ${targetLanguage} code with no explan
         }
       } catch (fallbackError) {
         console.error('Error with fallback merging:', fallbackError);
-        
+
         // Ultimate fallback: just append the suggestion to existing code
         const ultimateFallback = currentCode + '\n\n' + code;
         switch (targetLanguage) {
@@ -737,7 +736,7 @@ document.getElementById('my-button').addEventListener('click', function() {
               <span>Preview</span>
             </button>
           </div>
-          
+
           {/* AI Assistant - Always mounted, conditionally visible */}
           <div className={`flex-1 overflow-y-auto ${activeAssistantTab === 'ai' ? 'block' : 'hidden'}`}>
             <AiAssistant 
